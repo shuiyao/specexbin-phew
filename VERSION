@@ -1,3 +1,15 @@
 200427
 ----------------
 The First Version. Based from eagle:~/temp/specexbin/specexbin_gw
+
+Comparing to specexbin_phew:
+File: ./contsmoothspec.c
+File: ./contspecexbin_v8.c
+File: ./file_io.c
+File: ./getspecparticles.c
+File: ./initions.c
+File: ./outtau.c
+File: ./tau.c
+File: ./proto.h
+File: ./specexbindefs.h
+File: ./tipsydefs_n2.h

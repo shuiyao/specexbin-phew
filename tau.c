@@ -129,9 +129,6 @@ int Tau()
   }
   fprintf(stderr, "TAUBEGIN: i=%d nvbins=%d\n",
 	  i-1, nvbins);
-  // Normal: 2795, 2793: loop = 6
-  // Wind: 2798, 2793
-  // - redshift_track= 0.029997  IonTotal.redshift[nzbins-1]= -0.011976 nzbins= 13979
 
   voffset = 0;
   vmin = 0.0;
@@ -440,12 +437,6 @@ int Tau()
 	      // Since tau depends on oscillator strength, which is col3.
 	      //    This is done in the normalization later.
 #endif
-	      /* if(bin == 1750 && ionid == 0){ */
-	      /* 	fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g\n", */
-	      /* 		I.vbins[bin], bin, */
-	      /* 		v_interp, voffset, mass_interp, dvcol, */
-	      /* 		bin_min, bin_max, vbin_coord[bin]); */
-	      /* } */
 	      
 	      I.rhobins[bin] += dvcol*rho_interp*mass_interp;
 	      I.tbins[bin] += dvcol*t_interp*mass_interp;
