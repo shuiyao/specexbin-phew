@@ -1,16 +1,31 @@
+typedef float Real;
+
 #define NDIM		3
 #define BOXSIZE         1.0
 #define HALFBOX         0.5
 #define HBEXTRA         0.55
+#ifdef INTKERNELNHLIMIT
+#define NSRCHRAD	1.0
+#else
 #define NSRCHRAD	2.0
+#endif
+
+#define NSUBBIN		10
 #define NBSMOOTH	5.0
 
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
 #define NVBINS_ADVANCED 250 // About 200 km/s
 #endif
 
 #define NIONS 29
 #define SOLAR_METALS 0.0189
+#ifdef HDF5FORMAT
+#define NMETALS 11
+#else
+#ifdef TIPSYFORMAT
+#define NMETALS 4
+#endif
+#endif
 
 /* redshift and velocity resolution */
 //#define ZRES            6.0e-07
@@ -19,18 +34,56 @@
 #define VRES            1.5e-05
 //#define ZRES            3.0e-07
 
-
 /* Physical constants */
 #define XH 	0.76
-#define KBOLTZ	1.381e-16
-#define MHYDR	1.673e-24
+#define XHE 	(1.0 - XH) / (4.0 * XH)
+#define KBOLTZ	1.3806e-16
+#define MHYDR	1.6726e-24
+#define GAMMAM1 (2.0/3)
 #define CLIGHT	2.99792458e10
 #define PI	3.14159265
 
-#define NMETALS 4
-
 /* Ion lookup table definitions */
 #include "iontab.h"
+
+/* struct opt_tau { */
+/*   float z; */
+/*   float rho; */
+/*   float temp; */
+/*   float metals[NIONS]; */
+/*   float ions[NIONS]; */
+/* } ; */
+
+/* struct dark_particle { */
+/*     Real mass; */
+/*     Real pos[NDIM]; */
+/*     Real vel[NDIM]; */
+/*     Real eps; */
+/*     Real phi ; */
+/* } ; */
+/* struct dark_particle dp[1]; */
+
+/* struct star_particle { */
+/*     Real mass; */
+/*     Real pos[NDIM]; */
+/*     Real vel[NDIM]; */
+/*   //    Real metals[NMETALS] ; */
+/*     Real metals; */
+/*     Real tform ; */
+/*     Real eps; */
+/*     Real phi ; */
+/* } ; */
+/* struct star_particle sp[1]; */
+
+/* struct dump { */
+/*   double time ; */
+/*   int nbodies ; */
+/*   int ndim ; */
+/*   int nsph ; */
+/*   int ndark ; */
+/*   int nstar ; */
+/* } ; */
+/* struct dump header ; */
 
 struct spec_particle {
   int ID;
@@ -51,7 +104,7 @@ struct spec_particle {
   Real dgal;
   Real dpeculiar;
   Real vrel;
-#ifdef WIND_BY_WIND
+#ifdef PART_BY_PART
   Real delaytime;
 #endif  
 #ifdef PHEW
@@ -71,15 +124,6 @@ typedef struct ionStruct {
   double *temp;
   double *rho;
   double *metals[NMETALS];
-#ifdef PHYSSPEC
-  double *sfr;
-  double *wtmass;
-  double *mgal;
-  double *dgal;
-  double *age;
-  double *nrec;
-  double *vlaunch;
-#endif
   double *redshift;
   double *binsize;
   double *bincoord;
@@ -87,21 +131,13 @@ typedef struct ionStruct {
   double *tbins;
   double *rhobins;
   double *Zbins;
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
   // Make sure whatever defined here are properly:
   // malloc'ed, realloc'ed, free'd
   double *vcbins;
   double *tcbins;
   double *rhocbins;
   double *Zcbins;
-#endif
-#ifdef PHYSSPEC
-  double *sfrbins;
-  double *mgalbins;
-  double *dgalbins;
-  double *agebins;
-  double *nrecbins;
-  double *vlaunchbins;
 #endif
   float lambda,fraction,Xsec,atomwt,bsys,alpha;
   int Zcolumn;

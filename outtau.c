@@ -10,15 +10,9 @@
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "hdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 #include "specexbindefs.h"
 #include "proto.h"
@@ -28,7 +22,7 @@ extern double unit_Velocity;
 
 int OutTau()
 {
-  int i, k, iname, jname, kname;
+  int i, k;
   /* int j, vi; */
   /* double z; */
   double rhomean;
@@ -42,18 +36,14 @@ int OutTau()
   strcpy(spec_dir, "/scratch/shuiyao/los/");
 #endif
 
+#ifndef SHORTSPEC
+  int iname, jname, kname;
   iname = floor(theta*180.0/PI+0.001);
   kname = floor(redshift_begin*100+0.0001);
   //k = floor((redshift_begin-delta_redshift+0.01)*100+0.0001);
   jname = floor(redshift_end*100+0.0001);
+#endif
 
-#ifdef PHYSSPEC
-    if(theta>0){
-      sprintf(fname,"phystau.%s.%d.%d_%d",sim_id,iname,jname,kname);
-    }else{
-      sprintf(fname,"phystau.%s.%s.%d_%d",sim_id,id,jname,kname);
-    }  /* BDO 11-24-10, I think this is obselete.*/ 
-#else
 #ifdef PIPELINE
   if(theta>0){
     sprintf(fname,"spectau.%s.%d.z%d_%d",sim_id,iname,jname,kname);
@@ -69,7 +59,6 @@ int OutTau()
   }else{
     sprintf(fname,"specztau.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
-#endif
 #endif
 #endif
 
@@ -113,14 +102,6 @@ int OutTau()
 	  if(isnan(Ion[k].tbins[i]) || isinf(Ion[k].tbins[i])) Ion[k].tbins[i] = 0.0;
 	  if(isnan(Ion[k].Zbins[i]) || isinf(Ion[k].Zbins[i])) Ion[k].Zbins[i] = 0.0;
 	  if(isnan(Ion[k].vbins[i]) || isinf(Ion[k].vbins[i])) Ion[k].vbins[i] = 0.0;
-#ifdef PHYSSPEC
-	  if(isnan(Ion[k].mgalbins[i]) || isinf(Ion[k].mgalbins[i])) Ion[k].mgalbins[i] = 0;
-	  if(isnan(Ion[k].dgalbins[i]) || isinf(Ion[k].dgalbins[i])) Ion[k].dgalbins[i] = 0;
-	  if(isnan(Ion[k].agebins[i]) || isinf(Ion[k].agebins[i])) Ion[k].agebins[i] = 0;
-	  if(isnan(Ion[k].nrecbins[i]) || isinf(Ion[k].nrecbins[i])) Ion[k].nrecbins[i] = 0;
-	  if(isnan(Ion[k].vlaunchbins[i]) || isinf(Ion[k].vlaunchbins[i])) Ion[k].vlaunchbins[i] = 0;
-	  if(isnan(Ion[k].sfrbins[i]) || isinf(Ion[k].sfrbins[i])) Ion[k].sfrbins[i] = 0;
-#endif 
 	}
 	if(k==-1){
 	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhobins[i],IonTotal.tbins[i],IonTotal.Zbins[i]);
@@ -202,7 +183,7 @@ int OutTau()
   fclose(outfile); // specztau or specaim
 #endif // PHEW
 
-#ifdef WIND_BY_WIND 
+#ifdef PART_BY_PART 
   // The format is exactly the same as specztau or specaim. Only contains wind information
 #ifdef SHORTSPEC
   sprintf(fname,"specaimw.%s.%s",sim_id,namesuffix);
@@ -269,41 +250,7 @@ int OutTau()
   } // while(redshift_track>redshift_begin-0.01)
   fclose(outfile); // specztau or specaim
   fprintf(stderr, "SUCCESSFUL! Done Writting....\n");
-#endif // WIND_BY_WIND
+#endif // PART_BY_PART
 
-#ifdef PHYSSPEC
-  for(k=0; k<nions; k++){
-    
-    if(theta>0){
-      sprintf(fname,"phystau.%s.%s.%d.%d_%d",Ion[k].name,sim_id,iname,jname,kname);
-    }else{
-      sprintf(fname,"phystau.%s.%s.%s.%d_%d",Ion[k].name,sim_id,id,jname,kname);
-    }  
-#ifdef OUTPUT_LOCAL_FOLDER
-    outfile = fopen(fname,"a");
-#else
-    strcat(strcpy(longfname, spec_dir), fname);
-    outfile = fopen(longfname,"a");
-#endif
-    i = 0;
-    redshift_track = IonTotal.redshift[0];
-    fprintf(stderr,"redshift_track = %f\n",redshift_track);
-    
-    while(redshift_track>redshift_begin-0.01){
-      redshift_track -= vres;
-      if( redshift_track > redshift_begin && redshift_track < redshift_end){
-	fprintf(outfile, "%10.7f ",redshift_track);
-	fprintf(outfile, "% 6.3f %6.3f ",Ion[k].rhobins[i],Ion[k].tbins[i]);
-	fprintf(outfile, "%5.3e %5.3e ", Ion[k].Zbins[i],Ion[k].vbins[i]);
-	fprintf(outfile, "%5.3e %5.3e %5.3e %5.3f %5.1f ",Ion[k].mgalbins[i],Ion[k].dgalbins[i],Ion[k].agebins[i],Ion[k].nrecbins[i],Ion[k].vlaunchbins[i]);
-	fprintf(outfile, "%5.3e",Ion[k].sfrbins[i]);
-	//fprintf(outfile,"% 7.5f % 7.5f % 7.5f %6.2f",bin_x[i],bin_y[i],bin_z[i],gal_field[i]);
-	fprintf(outfile,"\n");
-      }
-      i++;
-    }
-    fclose(outfile);
-  }
-#endif
-    return 0;
+  return 0;
 }

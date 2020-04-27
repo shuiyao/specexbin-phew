@@ -7,19 +7,15 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/times.h>
+
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "hdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
+
 #include "specexbindefs.h"
 #include "proto.h"
 #include "extern.h"
@@ -31,7 +27,6 @@ extern double unit_Mass,unit_Velocity,unit_Length,unit_Density;
 
 #ifdef INTKERNELNHLIMIT
 #define NINTERP 10000
-#define NSRCHRAD 1.0
 #define NHILIM 1.58489e17
 //#define NHILIM 1.e18	// agrees better w/Faucher-Giguere,Keres 2010 Fig 3
 #define P0BLITZ 3.5e+04 // Blitz & Rosolowski 2006
@@ -46,7 +41,7 @@ float findrandgauss();
 
 int ContSmoothSpec()
 {
-  int i,j,k,m;
+  int i,k,m;
   struct spec_particle *cp;
   double irep[NDIM],part_pos[NDIM];
   float bound_min[NDIM],bound_max[NDIM];
@@ -99,31 +94,36 @@ int ContSmoothSpec()
 
   InitKernIntTable();
 #endif
-#ifdef WIND_BY_WIND
+#ifdef PART_BY_PART
   int nvbinsnew;
   int ionid;
   int irepz;
   int vbin, vbin_min, vbin_max;
-  double prob0, prob1, prob2;
-  double nc_bin;
-  float nc_this_bin;
   int Zcol;
   double *vbin_size, *vbin_coord;
   double vcoord, vstep;
-  float hubble_expansion;
+  /* float hubble_expansion; */
   float vlower,vupper;
   float abs_vlower,abs_vupper;
-  float dvcol, unit_col;
+  float dvcol;
   float b;
   double colcloud, rhocloud, tcloud, vcloud, Zcloud;
   double *voffset;
   ionStruct I;
 #endif  
+#ifdef PHEW
+  double prob0, prob1, prob2;
+  double nc_bin;
+  float nc_this_bin;
+#endif
 
-  i = floor(theta*180.0/PI+0.001);
-  k = floor(redshift_begin*100+0.0001);
   //k = floor((redshift_low-delta_redshift+0.01)*100+0.0001);
-  j = floor(redshift_end*100+0.0001);
+#ifndef SHORTSPEC
+  int iname, jname, kname;
+  iname = floor(theta*180.0/PI+0.001);
+  jname = floor(redshift_end*100+0.0001);
+  kname = floor(redshift_begin*100+0.0001);
+#endif
 
   //#ifdef PARTIONFRAC
   redshift_hold = redshift;
@@ -152,16 +152,16 @@ int ContSmoothSpec()
   partfile = fopen(longpartname,"w");
 #endif
   fprintf(partfile,"#count = %d\n",count);
-#else 
+#else // SHORTSPEC = OFF
   if(theta>0){
-    sprintf(binname,"binzfile.%s.%d.%d_%d",sim_id,i,j,k);
+    sprintf(binname,"binzfile.%s.%d.%d_%d",sim_id,iname,jname,kname);
   }else{
-    sprintf(binname,"binzfile.%s.%s.%d_%d",sim_id,id,j,k);
+    sprintf(binname,"binzfile.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
   if(theta>0){
-    sprintf(partname,"partzfile.%s.%d.%d_%d",sim_id,i,j,k);
+    sprintf(partname,"partzfile.%s.%d.%d_%d",sim_id,iname,jname,kname);
   }else{
-    sprintf(partname,"partzfile.%s.%s.%d_%d",sim_id,id,j,k);
+    sprintf(partname,"partzfile.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
 #ifdef OUTPUT_LOCAL_FOLDER
   binfile = fopen(binname,"a");
@@ -180,7 +180,7 @@ int ContSmoothSpec()
 #endif
 
   //zout = redshift_hold;
-#ifdef WIND_BY_WIND
+#ifdef PART_BY_PART
   /* SH161020: Construct vbins for particle-by-particle tau calculation*/
   // --------------------------------
   // nzbins is are already assigned in GetSpecParticles.
@@ -237,14 +237,16 @@ int ContSmoothSpec()
   zcoord = 0;
   /* while(redshift_track >= IonTotal.redshift[nzbins-1]){ */
   /* while(redshift_track >= bin_redshift[nzbins-1]){ */
+  zstep = vres/(BOXSIZE*hubble*unit_Velocity/clight);
+
   while(bin < nvloopbins + nvbins){    
     redshift_track -= vres; // vres = VRES is defined in specexbindefs.h
 #ifndef SHORTSPEC  
     cosmopar(CosmicTime(redshift_track));
 #endif
-    zstep = vres/(BOXSIZE*hubble*unit_Velocity/clight);
+    vstep = zstep*aex*hubble*unit_Velocity; // Need aex from cosmopar
+
     zcoord += zstep;
-    vstep = zstep*aex*hubble*unit_Velocity;
     vcoord += vstep;
     bin++;
     /* vbin_size = realloc(vbin_size, bin*sizeof(double)); */
@@ -252,6 +254,9 @@ int ContSmoothSpec()
     vbin_size[bin-1] = vstep/1.e5;
     vbin_coord[bin-1] = vcoord/1.e5;
   }
+
+  vstep = zstep*aex*hubble*unit_Velocity; // Because later on it is needed.
+
   // bin does not necessarily equal to nzloopbins + nzbins, because
   // vres and zres are different thing.
   if(bin != nvloopbins + nvbins)
@@ -263,7 +268,7 @@ int ContSmoothSpec()
   // In the LONGSPEC case, it's not necessarily true.
   // In fact, bin ~ nvloopbins + nvbins + i(number of wraps)
   nvbinsnew = nvbins + nvloopbins;
-#endif // WIND_BY_WIND
+#endif // PART_BY_PART
   
 #ifdef SHORTSPEC
   redshift = redshift_center;
@@ -277,15 +282,9 @@ int ContSmoothSpec()
   for(i = nzloopbins; i < nzloopbins+nzbins; i++){
     IonTotal.mass[i] = IonTotal.vel[i] = IonTotal.temp[i] = IonTotal.rho[i] = 0.0;
     for(m=0;m<NMETALS;m++) IonTotal.metals[m][i] = 0;
-#ifdef PHYSSPEC
-    IonTotal.sfr[i] = IonTotal.wtmass[i] = IonTotal.mgal[i] = IonTotal.dgal[i] = IonTotal.age[i] = IonTotal.nrec[i] = IonTotal.vlaunch[i] = 0.0;
-#endif
     for( k=0; k<nions; k++ ){ 
       Ion[k].mass[i] = Ion[k].vel[i] = Ion[k].temp[i] = Ion[k].rho[i] = 0.0;
       for(m=0;m<NMETALS;m++) Ion[k].metals[m][i] = 0;
-#ifdef PHYSSPEC
-      Ion[k].sfr[i] = Ion[k].wtmass[i] = Ion[k].mgal[i] = Ion[k].dgal[i] = Ion[k].age[i] = Ion[k].nrec[i] = Ion[k].vlaunch[i] = 0.0;
-#endif	    
     }
   }
   for (i = 0 ;i < count ;i++) {
@@ -358,7 +357,7 @@ int ContSmoothSpec()
 	    coldphasemassfrac = 0.9; // MOTIVATED BY HONG ET AL.  TO GET AROUND COMPLICATED FUNCTION OF TEMPERATURE. 
 	    coldphasetemp = 1e+03; /* Modified 7-28-11 to split SH03 two phase. 10^3 and 10^8 */
 	  }
-	  // SH161007: WIND_BY_WIND?
+	  // SH161007: PART_BY_PART?
 #endif
 
 #ifdef PAINTAVERAGEMETALS // Mostly OFF
@@ -375,13 +374,8 @@ int ContSmoothSpec()
 
 #ifndef PIPELINE
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e %6.4e %6.4e %6.4e %6.4e ",cp->mass, cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR, cp->temp, cp->metals[0], cp->metals[1], cp->metals[2], cp->hsmooth);
-#ifdef PHYSSPEC
-	  fprintf(partfile,"%5.2f % 4.2f %5.2f ",cp->mgal,cp->dgal,cp->ageaway);
-#else 
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->pos[0],cp->pos[1],cp->pos[2]);
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->vel[0],cp->vel[1],cp->vel[2]);
-
-#endif
 	  fprintf(partfile," %5.3f %6.4e\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0)); 
 #endif
 
@@ -643,14 +637,17 @@ int ContSmoothSpec()
 	    }
 
 	    //unit_vel = 1;
-	    //#ifndef OWLSFORMAT /* Not sure about this... */
+	    //#ifndef HDF5FORMAT /* Not sure about this... */
 	    unit_vel = unit_Velocity*aex/1.e5;
 	    //#endif
 	    //if(kernel > -1.0){ /* It is an unexplained occurence why some kernel values are anomolously very negative... but they are rare so we will ignore them */
 	    if(kernel > 0.0){ /* Really, negative kernel values are bad.  They should be ignored at all costs.  7-9-11 */
-#ifdef WIND_BY_WIND
-	      if(cp -> delaytime <= -1.e30){ /* Not a PhEW wind */
-#endif		    
+
+#ifndef PART_BY_PART // >>>>>>>>>>>>>>>>
+	    // ----------------------------------------------------------------
+	    // ---------------- PART_BY_PART = OFF ----------------
+	    // ----------------------------------------------------------------
+
 		IonTotal.mass[bin+nzloopbins] += kernel*cp->mass ;
 		//if(bin==nzbins-2 || bin==nzbins-1){ 
 		//fprintf(stdout,"LASTBIN: nzbins= %5d kernel= % 5.3e cp->mass= %5.3e mass= %5.3e tot= %5.3e zlower= % 5.3e zupper= % 5.3e radius2= % 5.3e radius= % 5.3e\n",bin,kernel,cp->mass,kernel*cp->mass,IonTotal.mass[bin+nzloopbins],zlower,zupper,radius2,radius);
@@ -673,18 +670,6 @@ int ContSmoothSpec()
 		  IonTotal.metals[m][bin+nzloopbins] += kernel*(cp->mass)*(cp->metals[m]) ;
 		  if(cp->metals[m] > 10) {printf("BAD CP METAL!!\n"); exit(-1);}
 		}
-#ifdef PHYSSPEC
-		IonTotal.sfr[bin+nzloopbins] += kernel*(cp->mass)*(cp->sfr);
-		if(cp->mgal>0 && cp->dgal>0 && cp->ageaway>0){
-		  IonTotal.wtmass[bin+nzloopbins] += kernel*cp->mass ;
-		  IonTotal.age[bin+nzloopbins] += kernel*cp->mass*(cp->ageaway) ;
-		  IonTotal.dgal[bin+nzloopbins] += kernel*cp->mass*(log10(cp->dgal)) ;
-		  IonTotal.mgal[bin+nzloopbins] += kernel*cp->mass*(cp->mgal) ;
-		  IonTotal.vlaunch[bin+nzloopbins] += kernel*cp->mass*(cp->vlaunch) ;
-		  IonTotal.nrec[bin+nzloopbins] += kernel*cp->mass*(cp->nrec) ;
-		}
-
-#endif
 
 		for( k=0; k<nions; k++ ) {		      
 		  if(Ion[k].Zcolumn==-1){ // HI or HeII, k = 0, 1
@@ -714,21 +699,13 @@ int ContSmoothSpec()
 		  Ion[k].temp[bin+nzloopbins] += kernel*ion_weight*cp->mass*cp->temp ;
 		  Ion[k].rho[bin+nzloopbins] += kernel*ion_weight*cp->mass*(cp->rho*XH*unit_Density/(aex*aex*aex)) ;
 		  for(m=0;m<NMETALS;m++)Ion[k].metals[m][bin+nzloopbins] += kernel*ion_weight*(cp->mass)*(cp->metals[m]) ;
-#ifdef PHYSSPEC
-		  Ion[k].sfr[bin+nzloopbins] += kernel*ion_weight*(cp->mass)*(cp->sfr);
-		  if(cp->mgal>0 && cp->dgal>0 && cp->ageaway>0){
-		    Ion[k].wtmass[bin+nzloopbins] += kernel*ion_weight*cp->mass ;
-		    Ion[k].age[bin+nzloopbins] += kernel*ion_weight*cp->mass*cp->ageaway ;
-		    Ion[k].dgal[bin+nzloopbins] += kernel*ion_weight*cp->mass*(log10(cp->dgal)) ;
-		    Ion[k].mgal[bin+nzloopbins] += kernel*ion_weight*cp->mass*cp->mgal ;
-		    Ion[k].vlaunch[bin+nzloopbins] += kernel*ion_weight*cp->mass*(cp->vlaunch) ;
-		    Ion[k].nrec[bin+nzloopbins] += kernel*ion_weight*cp->mass*(cp->nrec) ;
-		  }
-#endif
 		} // FOR: 0 < k < nions
-#ifdef WIND_BY_WIND
-	      } // UP: delaytime <= 0
-	      else{ // IS a wind particle !
+
+#else  // >>>>>>>>>>>>>>>>
+	    // ----------------------------------------------------------------
+	    // ---------------- PART_BY_PART = ON ----------------
+	    // ----------------------------------------------------------------
+
 		// **************** Construction Begin ... ****************
 		// hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
 		for(ionid = -1; ionid < nions; ionid ++){
@@ -803,6 +780,7 @@ int ContSmoothSpec()
 #ifdef SHORTSPEC
 		  for(irepz = -1; irepz <= 1; irepz++) {
 #endif
+		    /* Okay. vstep is safe. Because it is used only when SHORTSPEC is ON, in which case vstep has only one value */
 		    vbin_min = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew - NBSMOOTH*b),vbin_coord,nvbinsnew);
 		    vbin_max = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew + NBSMOOTH*b),vbin_coord,nvbinsnew);
 		    // Debug Note: vbin_max = 0 near the end of the spectra
@@ -867,8 +845,7 @@ int ContSmoothSpec()
 		} // Loop: -1 < ionid < nions
 		  // **************** Construction End ... ****************		  
 		  
-	      } // A Wind Particle
-#endif	// WIND_BY_WIND	    
+#endif	// PART_BY_PART	    
 	    } // kernel > 0.0
 		    
 	      //if(bin==0) printf("MIN r = %9.7e k = % 9.7e m = % 9.7e r = % 9.7e b_max = %5d d = %5d cp->rho = %5.3e z = %7.5f aex = %7.5e\n",radius,kernel,IonTotal.mass[bin+nzloopbins],IonTotal.rho[bin+nzloopbins],bin_max,bin_max-bin_min,rhocgs,bin_redshift[bin],XH*unit_Density/(aex*aex*aex));
@@ -893,16 +870,6 @@ int ContSmoothSpec()
 	  IonTotal.metals[m][i] /= IonTotal.mass[i] ;
 	  if(IonTotal.metals[m][i] < 0) IonTotal.metals[m][i] = 0.0e+00;
 	}
-#ifdef PHYSSPEC
-	IonTotal.sfr[i] /= IonTotal.mass[i] ;
-	if(IonTotal.wtmass[i] != 0.0){
-	  IonTotal.age[i] /= IonTotal.wtmass[i];
-	  IonTotal.dgal[i] /= IonTotal.wtmass[i];
-	  IonTotal.mgal[i] /= IonTotal.wtmass[i];
-	  IonTotal.vlaunch[i] /= IonTotal.wtmass[i];
-	  IonTotal.nrec[i] /= IonTotal.wtmass[i];
-	}
-#endif
       } // IonTotal.mass[i] != 0
       /* nzloopbins <= i < nzloopbins+nzbins */
       IonTotal.redshift[i] = bin_redshift[i-nzloopbins]; // 0 <= idx < nzbins
@@ -921,16 +888,6 @@ int ContSmoothSpec()
 	    Ion[k].metals[m][i] /= Ion[k].mass[i] ;
 	    if(Ion[k].metals[m][i] < 0) Ion[k].metals[m][i] = 0.0e+00;
 	  }
-#ifdef PHYSSPEC
-	  Ion[k].sfr[i] /= Ion[k].mass[i] ;
-	  if(Ion[k].wtmass[i] != 0.0){
-	    Ion[k].age[i] /= Ion[k].wtmass[i];
-	    Ion[k].dgal[i] /= Ion[k].wtmass[i];
-	    Ion[k].mgal[i] /= Ion[k].wtmass[i];
-	    Ion[k].vlaunch[i] /= Ion[k].wtmass[i];
-	    Ion[k].nrec[i] /= Ion[k].wtmass[i];
-	  }
-#endif
 	} // Ion[k].mass[i] > 0
       } // 0 <= k < nions
       //#endif
@@ -949,9 +906,6 @@ int ContSmoothSpec()
       fprintf(binfile," ",Ion[4].mass[i],Ion[4].vel[i],Ion[4].rho[i],Ion[4].temp[i],Ion[4].metals[0][i]);
 #endif
       fprintf(binfile," %5.3e %8.3f % 5.3e %5.3e %5.3e ",Ion[6].mass[i],Ion[6].vel[i],Ion[6].rho[i],Ion[6].temp[i],Ion[6].metals[0][i]);
-#ifdef PHYSSPEC
-      fprintf(binfile," %5.2f %5.2f %5.2f %6.1f %5.3f",IonTotal.mgal[i],IonTotal.age[i],IonTotal.dgal[i],IonTotal.vlaunch[i],IonTotal.nrec[i]);
-#endif
       fprintf(binfile,"\n");
 #endif
 
@@ -977,7 +931,7 @@ int ContSmoothSpec()
     free(spec_particles);
     //cosmopar(CosmicTime(zout)); /* Why is this necessary? BDO 10/28/09
 #endif
-#ifdef WIND_BY_WIND    
+#ifdef PART_BY_PART    
     free(voffset);
     free(vbin_coord);
     free(vbin_size);

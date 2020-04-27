@@ -10,15 +10,9 @@
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "hdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 #include "proto.h"
 #include "specexbindefs.h"
@@ -48,9 +42,6 @@ int Tau()
   double mass_interp, v_interp;
   double irepz;
   float t_interp,rho_interp,Z_interp;
-#ifdef PHYSSPEC
-  float mgal_interp, dgal_interp, age_interp, nrec_interp, vlaunch_interp, sfr_interp;
-#endif
   double voffset;
   int bin,bin_min,bin_max,bin_cen;
   float vlower,vupper;
@@ -152,9 +143,6 @@ int Tau()
     }
     for( i=0; i<nvbins; i++ ){
       I.vbins[i] = I.tbins[i] = I.rhobins[i] = I.Zbins[i] = norm[i] = 0.0;
-#ifdef PHYSSPEC
-      I.sfrbins[i] = I.mgalbins[i] = I.dgalbins[i] = I.agebins[i] = I.nrecbins[i] = I.vlaunchbins[i] = 0.0;
-#endif
     }
     Zcol = I.Zcolumn;
     hubble_expansion = 0;
@@ -249,33 +237,9 @@ int Tau()
 	  }
 	}
 
-#ifdef PHYSSPEC 
-#ifdef VARGALBKGD
-	mgal_interp = (I.mgal[k+1] - I.mgal[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.mgal[k] ;
-	dgal_interp = (I.dgal[k+1] - I.dgal[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.dgal[k] ;
-	mgal_100kpc_interp = 6.0;
-	if(mgal_interp>6.0){
-          mgal_100kpc_interp = log10(pow(10,mgal_interp)*pow((100/pow(10,dgal_interp)),2));
-	}else{
-	  mgal_100kpc_interp = 6.0;
-	}
-	if(mgal_100kpc_interp>11.0){
-	  mgal_100kpc_interp = 11.0;
-	}
-#endif
-        sfr_interp = (I.sfr[k+1] - I.sfr[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.sfr[k] ;
-	mgal_interp = (I.mgal[k+1] - I.mgal[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.mgal[k] ;
-	dgal_interp = (I.dgal[k+1] - I.dgal[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.dgal[k] ;
-	age_interp = (I.age[k+1] - I.age[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.age[k] ;
-	nrec_interp = (I.nrec[k+1] - I.nrec[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.nrec[k] ;
-	vlaunch_interp = (I.vlaunch[k+1] - I.vlaunch[k])*(i + ((double)(j))/((double)(nsubbinvar)) - (k + 0.5)) + I.vlaunch[k] ;
-#endif
-
 #ifdef SMOOTHSPEC
 	I = Ion[ionid];
 #endif
-
-
 
 #ifdef SMOOTHSPH /* Now run ionization fractions calculations */
 	if(ionize_redshift > IonTotal.redshift[i]){
@@ -441,14 +405,6 @@ int Tau()
 	      I.rhobins[bin] += dvcol*rho_interp*mass_interp;
 	      I.tbins[bin] += dvcol*t_interp*mass_interp;
 	      I.Zbins[bin] += dvcol*Z_interp*mass_interp;
-#ifdef PHYSSPEC
-	      I.sfrbins[bin] += dvcol*sfr_interp*mass_interp;
-	      I.mgalbins[bin] += dvcol*mgal_interp*mass_interp;
-	      I.dgalbins[bin] += dvcol*dgal_interp*mass_interp;
-	      I.agebins[bin] += dvcol*age_interp*mass_interp;
-	      I.nrecbins[bin] += dvcol*nrec_interp*mass_interp;
-	      I.vlaunchbins[bin] += dvcol*vlaunch_interp*mass_interp;
-#endif
 	      norm[bin] += dvcol*mass_interp;
 	      //if(ionid==6 || ionid==1)fprintf(stdout,"WRAPAROUNDVEL: ionid= %2d irepz= % 5.3f bin_min= %5d bin_max= %5d bin= %5d v_interp= % 7.2f irepz*vstep/1.e5*nvbins= % 7.2f b= %7.2f vmin= %4.2f vbin_coord[bin]= %7.2f dvcol= % 5.3e vlower= % 7.2f vupper= % 7.2f b= %7.3f t_interp= %5.3e I.temp[k]= %5.3e I.temp[k+1]= %5.3e weight_sub= %5.3e (I.temp[k+1]-I.temp[k])*weight_sub= %5.3e\n",ionid,irepz,bin_min,bin_max,bin,v_interp,irepz*vstep/1.e5*nvbins,b,vmin,vbin_coord[bin],dvcol,vlower,vupper,I.bsys,t_interp,I.temp[k],I.temp[k+1],weight_sub,(I.temp[k+1] - I.temp[k])*weight_sub);
 	      //if(weight_sub>1.0)fprintf(stdout,"WRAPAROUNDVELWRONG: i= %5d j= %5d k= %5d nsubbinvar= %5d mass= %5.3e %5.3e ionid= %2d irepz= % 5.3f bin_min= %5d bin_max= %5d bin= %5d v_interp= % 7.2f irepz*vstep/1.e5*nvbins= % 7.2f b= %7.2f vmin= %4.2f vbin_coord[bin]= %7.2f dvcol= % 5.3e vlower= % 7.2f vupper= % 7.2f b= %7.3f t_interp= %5.3e I.temp[k]= %5.3e I.temp[k+1]= %5.3e weight_sub= %5.3e (I.temp[k+1]-I.temp[k])*weight_sub= %5.3e\n",i,j,k,nsubbinvar,I.mass[k+1],I.mass[k],ionid,irepz,bin_min,bin_max,bin,v_interp,irepz*vstep/1.e5*nvbins,b,vmin,vbin_coord[bin],dvcol,vlower,vupper,I.bsys,t_interp,I.temp[k],I.temp[k+1],weight_sub,(I.temp[k+1] - I.temp[k])*weight_sub);
@@ -481,14 +437,6 @@ int Tau()
 	I.tbins[i] /= norm[i];
 	I.rhobins[i] /= norm[i];
 	I.Zbins[i] /= norm[i];
-#ifdef PHYSSPEC
-	I.sfrbins[i] /= norm[i];
-	I.mgalbins[i] /= norm[i];
-	I.dgalbins[i] /= norm[i];
-	I.agebins[i] /= norm[i];
-	I.nrecbins[i] /= norm[i];
-	I.vlaunchbins[i] /= norm[i];
-#endif
       }
     }
     if(ionid==-1){
@@ -499,7 +447,7 @@ int Tau()
     
   }
 
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
     redshift_track = IonTotal.redshift[0];
     for(i = 0; i < nvbins; i++) {
       redshift_track -= vres;

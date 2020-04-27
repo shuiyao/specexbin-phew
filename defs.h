@@ -29,8 +29,10 @@ typedef float Real;
 
 /* Physical constants */
 #define XH 	0.76
-#define KBOLTZ	1.381e-16
-#define MHYDR	1.673e-24
+#define XHE 	(1.0 - XH) / (4.0 * XH)
+#define KBOLTZ	1.3806e-16
+#define MHYDR	1.6726e-24
+#define GAMMAM1 (2.0/3)
 #define CLIGHT	2.99792458e10
 #define PI	3.14159265
 
@@ -44,48 +46,6 @@ struct opt_tau {
   float metals[NIONS];
   float ions[NIONS];
 } ;
-
-
-#ifdef PHYSSPEC
-struct metal_track_particle {
-  int ID;
-  float mass;
-  float rho;
-  float temp;
-  float metals[NMETALS];
-  float hsmooth;
-  float pos[NDIM];
-  float vel[NDIM];
-  float sfr;
-  float vlaunch;
-  float ageaway;
-  int nrec;
-  float mgal_launch;
-  float mgal;
-  float dtravel;
-  float dgal;
-  float dpeculiar;
-  float vrel;
-} ;
-struct metal_track_particle *metal_track_particles;
-struct metal_track_particle hp[1];
-#else
-struct gas_particle {
-  Real mass;
-  Real pos[NDIM];
-  Real vel[NDIM];
-  Real rho;
-  Real temp;
-  Real hsmooth;
-  //  Real metals[NMETALS] ;
-  Real metals;
-  Real phi ;
-/*   Real delaytime; */
-/*   Real tmax; */
-} ;
-struct gas_particle *gas_particles;
-struct gas_particle hp[1];
-#endif
 
 struct dark_particle {
     Real mass;
@@ -121,7 +81,6 @@ struct dump {
 } ;
 struct dump header ;
 
-
 typedef struct ionStruct {
   char name[10];
   double *mass;
@@ -132,15 +91,6 @@ typedef struct ionStruct {
 #ifdef MAXPARTMEASURE
   double *onepart;
 #endif
-#ifdef PHYSSPEC
-  double *sfr;
-  double *wtmass;
-  double *mgal;
-  double *dgal;
-  double *age;
-  double *nrec;
-  double *vlaunch;
-#endif
   double *redshift;
   double *binsize;
   double *bincoord;
@@ -148,14 +98,6 @@ typedef struct ionStruct {
   double *tbins;
   double *rhobins;
   double *Zbins;
-#ifdef PHYSSPEC
-  double *sfrbins;
-  double *mgalbins;
-  double *dgalbins;
-  double *agebins;
-  double *nrecbins;
-  double *vlaunchbins;
-#endif
   float lambda,fraction,Xsec,atomwt,bsys,alpha;
   int Zcolumn;
 } ionStruct;

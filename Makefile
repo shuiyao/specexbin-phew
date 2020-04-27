@@ -1,18 +1,19 @@
-OPT     +=  -DTIPSYN2FORMAT
+#OPT     +=  -DTIPSYFORMAT
+OPT     +=  -DHDF5FORMAT
 OPT     +=  -DDENSITY_H2_FACTOR
 OPT	+=  -DOUTPUT_LOCAL_FOLDER
-#OPT	+=  -DQUINTIC_KERNEL
+OPT	+=  -DQUINTIC_KERNEL
 OPT	+=  -DVELOCITY_UNIT_CORRECTION
 
-OPT	+=  -DWIND_BY_WIND # Mutually exclusive with PHEW
-OPT	+=  -DSINGLE_VOFFSET_PER_PARTICLE # Not recommended. The Pygad way.
+# OPT	+=  -DPART_BY_PART # Mutually exclusive with PHEW
+# OPT	+=  -DSINGLE_VOFFSET_PER_PARTICLE # Not recommended. The Pygad way.
 
-#OPT	+=  -DPHEW # Mutually exclusive with WIND_BY_WIND
-#OPT	+=  -DPHEW_MOREINFO
-#OPT	+=  -DPHEW_VERBOSE=1
-#OPT	+=  -DPHEW_HSMOOTH
-#OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
-#OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
+OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
+# OPT	+=  -DPHEW_MOREINFO
+# OPT	+=  -DPHEW_VERBOSE=1
+OPT	+=  -DPHEW_HSMOOTH
+OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
+OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
 
 #OPT	+=  -DNO_WIND_NGB_STAT
 #OPT    +=  -DVARYGALBKG
@@ -37,7 +38,6 @@ OPT     +=  -DDOHM12
 #OPT	 +=  -DNONEQUIL
 #OPT	 +=  -DBTURB
 #OPT     +=  -DSMOOTHSPH
-#OPT     +=  -DPHYSSPEC
 #OPT     +=  -DVARGALBKGD
 #OPT	+=  -DMETALFLOOR
 OPT     +=  -DSHORTSPEC
@@ -56,46 +56,41 @@ OPT     +=  -DINTKERNELNHLIMIT
 #OPT    +=  -DTIPSYFORMAT
 #OPT	+=  -DOWLSFORMAT
 
+ifeq (HDF5FORMAT,$(findstring HDF5FORMAT,$(OPT)))
+	HDF5_LIBS= -lhdf5
+endif
+
 CC= gcc
 FC= f77
 CLINK=gcc
 FLINK=f77
 GSL_INCL=-I/home/shuiyao/include
 GSL_LIBS=-L/home/shuiyao/lib
-CFLAGS= ${OPT} -g -Wall $(GSL_INCL) -O2
+CFLAGS= ${OPT} -g $(GSL_INCL) -O2
 FFLAGS= -O
-CLIB= -lm -lgsl -lgslcblas $(GSL_LIBS) #-lhdf5
+CLIB= -lm -lgsl -lgslcblas $(GSL_LIBS) $(HDF5_LIBS)
 FLIB= 
 
+
 ifeq (PHEW,$(findstring PHEW,$(OPT)))
-	SMOOTHER = contsmoothspec_phew.o
+	SMOOTHER = contsmoothspec.o
 else
 	SMOOTHER = contsmoothspec.o
 endif
 
-all: contspecexbin_v8
+all: contspecexbin
 
-OBJSCONTV6= contspecexbin_v6.o cosmo.o getspecparticles.o $(SMOOTHER) ionfrac.o initions.o tau.o outtau.o
-OBJSBIN2SPECV6 = bin2spec_v6.o cosmo.o ionfrac.o tau.o outtau.o 
-OBJSCONTV8= contspecexbin_v8.o cosmo.o getspecparticles.o file_io.o $(SMOOTHER) ionfrac.o initions.o tau.o outtau.o # read_hdf5.o
-OBJSBIN2SPECV8 = bin2spec_v8.o cosmo.o ionfrac.o tau.o outtau.o 
-
+OBJSCONT= contspecexbin.o cosmo.o getspecparticles.o file_io.o $(SMOOTHER) ionfrac.o initions.o tau.o outtau.o loadhdf5.o
 
 NROBJ= poidev.o gammln.o ran1.o
 
-contspecexbin_v8:  $(OBJSCONTV8) $(NROBJ) Makefile
-	$(CLINK) $(CFLAGS) -o contspecexbin_v8 $(NROBJ) $(OBJSCONTV8) $(CLIB)
-
-contspecexbin_v7:  $(OBJSCONTV7) $(NROBJ) 
-	$(CLINK) $(CFLAGS) -o contspecexbin_v7 $(NROBJ) $(OBJSCONTV7) $(CLIB)
+contspecexbin:  $(OBJSCONT) $(NROBJ) Makefile
+	$(CLINK) $(CFLAGS) -o contspecexbin $(NROBJ) $(OBJSCONT) $(CLIB)
 
 specexbin_pipeline:  $(OBJSCONTV6) $(NROBJ) Makefile
 	 $(CLINK) -DN2FORMAT -DPIPELINE -O2 -g -Wall -lm -o specexbin_pipeline $(NROBJ) $(OBJSCONTV6) $(CLIB)
 
-bin2spec_v6:	$(OBJSBIN2SPECV6) Makefile
-	$(CLINK) $(CFLAGS) -o bin2spec_v6  $(OBJSBIN2SPECV6) $(CLIB)
-
 clean:
 	rm -f *.o
-	rm -f contspecexbin_v8
+	rm -f contspecexbin
 

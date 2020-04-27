@@ -51,3 +51,45 @@ struct dump {
 
 struct dump header ;
 
+struct aux_gas_data
+{
+  Real metal[NMETALS];
+  Real sfr;
+  Real tmax;
+  Real delaytime;
+  Real ne;
+  Real nh;
+  int nspawn;
+  short int nrec;
+};
+
+struct aux_gas_data *aux_gas_data;
+
+struct aux_star_data
+{
+  Real metal[NMETALS];
+  Real age;
+  Real tmax;
+  int nspawn;
+  short int nrec;
+};
+
+struct aux_star_data *aux_star_data;
+
+#ifdef PHEW
+struct aw_gas_data
+{
+  short int wind_flag;
+  float mass_cloud;
+  float rho;
+  float temp;
+  float dtcool;
+  float dudt;
+  float rcloud;
+#ifndef NO_WIND_NGB_STAT
+  int numngb_as_wind;
+  int numngb_nonwind;
+  float r_nearest_ngb;
+#endif  
+};
+#endif

@@ -10,13 +10,8 @@
 extern double RndTable[RNDTABLE];
 extern gsl_rng *random_generator;	/*!< the random number generator used */
 #endif
-#ifdef PHYSSPEC
-//extern struct metal_track_particle *spec_particles;
-char *sim_id;
-#else
 //extern struct gas_particle *spec_particles;
 char sim_id[20];
-#endif
 extern struct spec_particle *gp;
 extern struct spec_particle *spec_particles;
 
@@ -52,7 +47,7 @@ extern int nsph;
 extern char namesuffix[200];
 extern double zres, vres;
 
-//#ifdef OWLSFORMAT
+//#ifdef HDF5FORMAT
 extern double *carbon, *oxygen, *silicon, *iron, *temp, *rho, *hsmooth, *mass;
 extern double *pos_tmp, *vel_tmp;
 

@@ -10,15 +10,9 @@
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "loadhdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 #include "specexbindefs.h"
 #include "proto.h"

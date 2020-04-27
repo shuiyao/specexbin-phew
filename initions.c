@@ -10,15 +10,9 @@
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "hdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 #include "specexbindefs.h"
 #include "proto.h"
@@ -116,7 +110,7 @@ int InitIons()
       Ion[i].tbins = malloc(nvbins*sizeof(double));
       Ion[i].rhobins = malloc(nvbins*sizeof(double));
       Ion[i].Zbins = malloc(nvbins*sizeof(double));      
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
       Ion[i].vcbins = malloc(nvbins*sizeof(double));
       Ion[i].tcbins = malloc(nvbins*sizeof(double));
       Ion[i].rhocbins = malloc(nvbins*sizeof(double));
@@ -152,7 +146,7 @@ int InitIons()
     IonTotal.tbins = malloc(nvbins*sizeof(double));
     IonTotal.rhobins = malloc(nvbins*sizeof(double));
     IonTotal.Zbins = malloc(nvbins*sizeof(double));
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
     IonTotal.vcbins = malloc(nvbins*sizeof(double));
     IonTotal.tcbins = malloc(nvbins*sizeof(double));
     IonTotal.rhocbins = malloc(nvbins*sizeof(double));
@@ -196,7 +190,7 @@ int InitIons()
       Ion[i].tbins = realloc(Ion[i].tbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].rhobins = realloc(Ion[i].rhobins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].Zbins = realloc(Ion[i].Zbins,(nvloopbins+nvbins)*sizeof(double));
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
       Ion[i].vcbins = realloc(Ion[i].vcbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].tcbins = realloc(Ion[i].tcbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].rhocbins = realloc(Ion[i].rhocbins,(nvloopbins+nvbins)*sizeof(double));
@@ -231,7 +225,7 @@ int InitIons()
     IonTotal.vbins = realloc(IonTotal.vbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.tbins = realloc(IonTotal.tbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.rhobins = realloc(IonTotal.rhobins,(nvloopbins+nvbins)*sizeof(double));
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
     IonTotal.vcbins = realloc(IonTotal.vcbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.tcbins = realloc(IonTotal.tcbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.rhocbins = realloc(IonTotal.rhocbins,(nvloopbins+nvbins)*sizeof(double));
@@ -256,7 +250,7 @@ int InitIons()
 #endif
   } 
 
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
   if(nvloopbins == NVBINS_ADVANCED) // First call
     for( i=0; i<nvloopbins; i++ ){
       IonTotal.vcbins[i] = IonTotal.tcbins[i] = IonTotal.rhocbins[i] = IonTotal.Zcbins[i] = 0.0;
@@ -308,7 +302,7 @@ void FreeIons(void)
     free(Ion[i].tbins);
     free(Ion[i].rhobins);
     free(Ion[i].Zbins);
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
     free(Ion[i].vcbins);
     free(Ion[i].rhocbins);
     free(Ion[i].tcbins);
@@ -326,7 +320,7 @@ void FreeIons(void)
   free(IonTotal.vbins);
   free(IonTotal.tbins);
   free(IonTotal.rhobins);
-#if defined(PHEW) || defined(WIND_BY_WIND)
+#if defined(PHEW) || defined(PART_BY_PART)
   free(IonTotal.vcbins);
   free(IonTotal.rhocbins);
   free(IonTotal.tcbins);

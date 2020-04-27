@@ -18,6 +18,8 @@ int Open_Snapshot(char *);
 int readhdf5(char*, int);
 double readunits(char*, int, char*);
 
+void io_error_msg(char *errmsg);
+
 /* contsmoothspec */
 //int ContSmoothSpec();
 

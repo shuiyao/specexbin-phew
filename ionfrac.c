@@ -10,15 +10,9 @@
 #ifdef TIPSYFORMAT
 #include "tipsydefs.h"
 #else
-#ifdef TIPSYN2FORMAT
-#include "tipsydefs_n2.h"
-#else
-#ifdef OWLSFORMAT 
-#include "owls.h"
-#else
-#include "tipsydefs_n.h" 
-#endif // OWLSFORMAT
-#endif // TIPSYN2FORMAT 
+#ifdef HDF5FORMAT 
+#include "hdf5.h"
+#endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 #include "specexbindefs.h"
 #include "proto.h"
@@ -304,14 +298,17 @@ void load_fraction_tables()
 	if( table1 != NULL )
    	for(inh=0;inh<NHPTS;inh++) {
       		for(itemp=0;itemp<TPTS;itemp++)
-         		for(i=0;i<nions;i++) fscanf(table1,"%g ", &fractab[i][inh][itemp]);
+         		for(i=0;i<nions;i++)
+			  if(!fscanf(table1,"%g ", &fractab[i][inh][itemp]))
+			    io_error_msg("ionfrac.c: table1 not read.");
 	}
 	if( table1 != NULL ) fclose(table1);
 
    	for(inh=0;inh<NHPTS;inh++) {
       		for(itemp=0;itemp<TPTS;itemp++) {
          		for(i=0;i<nions;i++) {
-				fscanf(table2,"%g ", &ftmp);
+			  if(!fscanf(table2,"%g ", &ftmp))
+			    io_error_msg("ionfrac.c: table1 not read.");
 				if( table1 != NULL ) fractab[i][inh][itemp] = ((redzhi-redshift)*fractab[i][inh][itemp] + (redshift-redzlo)*ftmp)/(redzhi-redzlo);
 				else fractab[i][inh][itemp] = ftmp;
 			}

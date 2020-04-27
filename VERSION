@@ -1,6 +1,19 @@
 200427
-----------------
+--------------------------------
+Major Updates:
+  - Remove PHYSSPEC
+  - Change WIND_BY_WIND to PART_BY_PART
+  - contsmoothspec.c: vstep
+  - Enabling hdf5 format
+  - Replace defs.h with specexbindefs.h
+
+200427
+----------------------------------------------------------------
 The First Version. Based from eagle:~/temp/specexbin/specexbin_gw
+
+Crucial Things:
+contsmoothspec.c: 
+  - Is it is or is it ain't a wind
 
 Comparing to specexbin_phew:
 File: ./contsmoothspec.c

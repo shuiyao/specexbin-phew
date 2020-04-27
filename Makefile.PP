@@ -4,9 +4,9 @@ OPT	+=  -DOUTPUT_LOCAL_FOLDER
 OPT	+=  -DQUINTIC_KERNEL
 OPT	+=  -DVELOCITY_UNIT_CORRECTION
 
-OPT	+=  -DWIND_BY_WIND # Mutually exclusive with PHEW
+OPT	+=  -DPART_BY_PART # Mutually exclusive with PHEW
 
-#OPT	+=  -DPHEW # Mutually exclusive with WIND_BY_WIND
+#OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
 #OPT	+=  -DPHEW_MOREINFO
 #OPT	+=  -DPHEW_VERBOSE=1
 #OPT	+=  -DPHEW_HSMOOTH
