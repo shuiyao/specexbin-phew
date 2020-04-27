@@ -1,0 +1,18 @@
+#!/bin/csh -f
+#SBATCH -o out-%j-%N
+#SBATCH -e err-%j-%N
+#SBATCH -p opteron
+#SBATCH -J autoVP
+#SBATCH --nodes=1
+#SBATCH --time=72:00:00
+
+cd /scratch/shuiyao/los/shortlos/p50n288o8/autovp/
+limit stacksize unlimited
+
+bash dospectra.sh
+
+
+
+
+
+

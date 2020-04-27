@@ -1,0 +1,203 @@
+
+	AUTOVP
+	------
+
+	Romeel Dave'
+
+AUTOVP is an automated package to fit an input spectrum with Voigt profiles.
+It consists of:
+- AUTOFIT, which makes an intelligent first guess regarding
+  the parameters of all Voigt profiles required to fit the spectrum, and
+- MINFIT, which reads those input parameters and performs chi-square
+  minimization to obtain the best-fit set of Voigt profiles.  
+
+AUTOVP is capable of fitting any type of ion.  Also, it
+interfaces directly with PROFIT, an interactive graphical Voigt 
+profile fitter developed by Chris Churchill (Penn St.).
+AUTOVP is portable to any machine; it requires no special libraries.
+
+
+BUILDING AUTOVP
+---------------
+
+Copy the file Makefile.dist to Makefile, then type "make".  There
+should be two executables produced, autofit and minfit.
+
+
+AUTOFIT
+-------
+
+AUTOFIT recursively adds lines at locations where the flux is minimum, then
+subtracts off the model from the data, until the residual flux is comparable
+to the noise.  Saturated lines are fit by coarsely sampling the N-b
+space to determine which values minimize chi2, while unsaturated lines
+are fit by reducing the column density and b-parameter from initially 
+large values until the line model roughly fits the data.
+
+AUTOFIT requires on its command line an ion name.  See ions.dat for choices.
+The location of the ions.dat file should be specified in readdata.f.
+If desired, ions may be added to ions.dat.
+
+AUTOFIT requires an input spectrum in the form of
+
+<wavelength  velocity  flux  noise>
+
+listed for each pixel in the spectrum (see readdata.f).  The name of
+this file should be <Ion_name>.cln.  An example is included in this
+package, called H1216N.cln.  All fitting is done in velocity space.
+
+AUTOFIT outputs a file containing the first-guess Voigt parameters, along
+with other information.  Its format is designed to interface with PROFIT:
+
+<N_elements  Redshift  v_heliocentric>
+<Ion_name  Nlines>
+<1  Column_Density_1  velocity_1  b-parameter_1>
+<2  Column_Density_2  velocity_2  b-parameter_2>
+ ...
+<Nlines  Column_Density_Nlines  velocity_Nlines  b-parameter_Nlines>
+
+AUTOFIT sets N_elements = 1 and v_heliocentric = 0.  The name of this
+output file is <Ion_name>.pro.
+
+AUTOFIT also outputs a file <Ion_name>.res containing the residual flux
+after all profile fits are subtracted, for checking purposes.
+
+
+MINFIT
+------
+
+MINFIT fits all lines within one region of the spectrum simultaneously,
+where a region is defined as a portion of spectrum between points where
+the spectrum reaches the continuum.  If too many lines are present in
+a single region, it subdivides the region intelligently at a local maximum.  
+Marquardt minimization is used to determine the best parameters
+for all lines within a region.  If this technique produces a chi2 which is
+too large, several more brute-force minimization techniques are used to 
+attempt to dislodge the fit from the local chi2-space minimum.  If these
+improve the fit, Marquardt's method is reapplied.
+If this iterative procedure produces an acceptable chi2, the line which has 
+the largest error (as determined by the root of the diagonal of the covariance 
+matrix) is discarded and the fit is redone.  If discarding that line *lowers*
+chi2, then the line is tossed, otherwise it is retained.  All lines
+with a "weakness" (as defined in tossline.f) below a certain level are
+tried as candidates to be discarded.
+If even the brute-force minimization does not sufficiently reduce chi2, a 
+line is added at the location where the largest contribution to chi2 occurs,
+of a predefined strength (see addline.f), and the entire procedure is
+repeated.  If adding a line reduces chi2 by a sufficient amount (~10%), the
+addition is accepted.
+If even after attempting to add lines MINFIT is unable to acceptably lower
+chi2, a warning message is printed to stdout.  The poor fits giving rise to
+these messages should be inspected visually to see if they are acceptable,
+and can be modified and refit with MINFIT if desired (see discussion in 
+PROFIT, below).
+
+MINFIT requires on its command line a name of a file containing profile
+fits (in the format output by AUTOFIT).  It reads <Ion_name> and inputs
+information on that ion from the ions.dat file.
+
+MINFIT outputs a file in similar format to the input file, except that
+additionally each line has their parameter errors output, as in (for line N):
+
+<N  Column_N  velocity_N  b-parameter_N  Delta-col_N  Delta-v_N  Delta-b_N>
+
+The errors (Delta's) are computed from the square root of the diagonal
+elements of the covariance matrix.  This assumes uncorrelated errors
+between all lines, which for complex systems is a relatively poor
+assumption.  Nevertheless, it does give some idea of the confidence
+associated with the parameters determined by MINFIT.  The first line of
+the output file additionally has the redshift interval covered by the
+spectrum, and the average optical depth in the optically thin
+(Intensity>0.1) regions of the spectrum.  This file is assigned the
+name of the input file, with its suffix changed from '.pro' to '.vpm'.
+An example is included in this package, called auto200.vpm.
+
+Parameter File
+--------------
+
+AUTOVP requires a parameter file called 'autovp.par' to be present in
+the local directory.  autovp.par contains a list of parameters required
+by AUTOFIT and MINFIT.  Please read the descriptions below and in the
+example autovp.par file, and adjust parameters accordingly:
+
+fsigma:  See fitregion.f and fitsat.f.  Should set 0.5 <~ fsigma <~ 2.0.
+NHImaxns:  See fitregion.f.  Vary according to ion.  Doesn't have to be 
+   too precise; erring on the large side is safer.
+NHImaxsat:  See fitsat.f.  Same comments as NHImaxns.
+bparmax:  Should be ~100 km/s, perhaps half that for metals.  MUST be greater
+   than bminsat*1.5.
+bminsat:  IMPORTANT! (see fitsat.f).  Set this to lowest b-param you want
+   to try for saturated line.  Varies with ion! (eg ~20 for HI, ~8 for OVI).
+freduce:  Should be ~0.98 or higher.  Final results not sensitive to this.
+voigtflag:  Does Voigt profile fitting (.TRUE.) or Gaussian fitting (.FALSE.).  
+   Gaussian fitting is ~3X faster.  For Ly-alpha forest, Gaussian is sufficient.
+sigmasm:  See smooth.f.  Should be <~2.0.
+bfact:  Combine lines within bfact*b of each other in AUTOFIT.  Should be <~0.5.
+nsplitmin:  See splitreg.f.  Should be 10 <~ nsplitmin <~ 15.  Putting too many
+   slows down MINFIT, too few causes inaccurate fits near split point.
+nlinemin:  See splitreg.f.  Should be <~ 1/3*nsplitmin.
+N_sigma:  IMPORTANT!  (see ew_finder.f).  Sets detection threshold.
+maxiter:  Max # of iterations for Marquardt minimization.  <~ 100 is sufficient.
+alamdamax:  Parameter terminating Marquardt min.  >~1.e6 is good value.
+chisqbad:  IMPORTANT!  This controls whether MINFIT will accept a Marquardt
+   fit.  If chi2 PER PIXEL in fitting region is below this, fit is acceptable.  
+   Fits should be visually inspected to see if the value input here is 
+   OK; it is purely a heuristic measure.  Also, this parameter should vary 
+   with signal-to-noise!  For S/N~60, I have found chisqbad~2.5 produces
+   visually good fits.  For S/N~20, can reduce to ~1.5.
+chisqgood:  IMPORTANT!  If MINFIT attempts to discard a line and chi2 per 
+   pixel remains below chisqgood, *even if chi2 increases* the line is deemed
+   unnecessary for a good fit and tossed.  Should be ~0.5*chisqgood.
+chisqtol:  ~0.001 is a reasonable value; shouldn't be much larger.
+faccept:  IMPORTANT!  Controls whether MINFIT will accept an added line.
+   chi2 must reduce by at least this factor for addition to be accepted.
+   Results are not really too sensitive to this, it turns out, since generally
+   an added line either produces a large reduction in chi2, or just
+   fits a noise spike and produces a <1% reduction in chi2.  Somewhere
+   between 0.05 and 0.1 is a good value.
+
+
+Running AUTOVP
+--------------
+
+It is best to run AUTOVP from a shell script.  A program must be
+written to convert your data format into a format readable by AUTOVP.
+The script should also rename '.pro' and '.vpm' files so that the next
+spectrum fit using the same Ion_name does not overwrite the previous one.
+
+An example shell script is included (autovpall).  It reads a optical
+depth file and converts to PROFIT format and adds noise (c2p), then
+fits a continuum (fitcont), then runs AUTOFIT then MINFIT, moving files
+around appropriately.  You should write your own versions of c2p and
+fitcont, if desired.
+
+
+PROFIT (not included in this package)
+------
+
+The output of AUTOFIT and MINFIT are designed to be readable by the 
+PROFIT interactive graphical Voigt-profile fitter.  PROFIT is useful to
+
+1) Check fits, especially in regions for which warning messages have 
+been output,
+
+2) Modify fits where unacceptable.  PROFIT outputs files with a '.pro'
+suffix, which can be directly read by MINFIT.  Thus if the original
+'.vpm' file had some obviously wrong fits, those fits may be roughly
+modified to be acceptable "by-eye", and then re-minimized, and
+generally the new fits will be good.
+
+PROFIT is unfortunately not terribly portable, since it requires the
+Lick Mongo plotting package.  Lick Mongo is available from Lick
+Observatory.
+
+An alternative is to convert the spectrum and line info into FITS
+format readable by VPFIT (available from Bob Carswell), and using that
+package to visualize and even improve fits.
+
+
+Finally...
+----------
+
+Please send comments/suggestions/kudos/flames to rad@ucolick.org.  Enjoy.
+

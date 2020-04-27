@@ -1,0 +1,754 @@
+##### specexbin README file- by Ben Oppenhemer, last updated 11/24/2010. #####
+
+##### BEGIN OUTLINE ####
+
+I. INTRODUCTION
+
+II. BASIC USAGE
+A. Straight sightlines
+B. Continuous sightlines
+
+III. COMPILING AND COMPILE TIME OPTIONS  
+
+IV. INPUT FILES
+A. sim_infile 
+B. LOSfile
+C. ltXXHMQG_iYY
+D. specions_iYY.dat
+
+V. OUTPUT FILES
+A. Tau files
+B. Parzfiles
+C. Binzfiles
+
+VI. RUNNING THE PROGRAM
+A. Straight sightlines
+B. Continuous sightlines
+
+VII. OTHER INPUT PARAMETERS
+
+VIII. CODE DETAILS (not done)
+
+##### END OUTLINE #####
+
+I. INTRODUCTION
+
+Specexbin is our spectral line generator code.  It was a code
+originally written by Uffe Hellsten and its structure remains the
+same, however many options have been added and modified.  
+
+The current version of the code has the main program in
+contspecexbin_v8.c.
+
+Specexbin can be run in two main different modes: 1) straight
+sightlines crossing the box along one axis (compiled with the
+SHORTSPEC flag on in the Makefile), and 2) angled sightlines running
+continuously looping across the box accounting for evolution
+(ionization background, Hubble expansion, and sampling different
+simulation snapshots corresponding to different redshifts).  
+
+II. BASIC USAGE:
+
+A. Straight sightlines (SHORTSPEC)
+
+Usage: contspecexbin_v8_short sim_infile LOSfile redshift_center boxsize flux_factor (direction)\n"
+
+See sim_infile and LOSfile description below in input files.
+
+-redshift_center= redshift of the snapshot you are looking at.  
+
+-boxsize= in Mpc/h.  
+
+-flux_factor= factor by which the ionization background intensity is
+ multiplied (1.0 is the Haardt & Madau 2001 intensity).
+
+-direction= Optional argument for the direction you want to go across
+ the box (0-x, 1-y, 2-z).  Default is 2 (and must match the 4th row in
+ the LOS files- see below).  
+
+B. Continuous sight lines (LOSs) 
+
+Usage: contspecexbin_v8 sim_infile redshift_begin redshift_end boxsize flux_factor theta ('x' coord) ('y' coord) (direction)\n"
+
+See sim_infile description below (same as SHORTSPEC case).  
+
+-redshift_begin- lower redshift bound of sightline.
+
+-redshift_end- upper redshift bound.  
+
+-boxsize= in Mpc/h.  
+
+-flux_factor= factor by which the ionization background intensity is
+ multiplied (1.0 is the Haardt & Madau 2001 intensity).
+
+-theta= angle of sight line relative to the directional axis in
+ degrees.  In general, I use between 10 and 80, because 0 will be a
+ repeating sight line as well as 90.
+
+-'x' and 'y' coordinates- these are optional arguments if you want to
+ specify the beginning coordinates of the sight line.  I personally
+ never use these for my sight lines and a random number generator pick
+ the x and y for the beginning coordinates at z=-0.5.  Coordinates are
+ always in tipsy units: -0.5 - 0.5.  [NOTE: not sure if the
+ functionality of this still works.]
+
+-direction= Optional argument for the direction you want to go across
+ the box (0-x, 1-y, 2-z).  Default is 2 (and must match the 4th row in
+ the LOS files- see below).  [NOTE: not sure if the functionality of
+ this still works.]
+
+III. COMPILING AND COMPILE TIME OPTIONS  
+
+When compiling the code, first make sure to run:
+
+make clean
+
+And then 
+
+make contspecexbin_v8 (or just make).
+
+In the Makefile there are a number of options specified as "OPT +=
+-DSHORTSPEC".  In general the default level of the code (which does
+continuous sight lines uses only -DTIPSYN2FORMAT turned on).  One of
+the simulation snapshot format options must be on (and only one).  
+
+##### Begin Makefile Options #####
+
+## Simulation snapshot format options.
+OPT    +=  -DTIPSYN2FORMAT
+
+This is the tipsy_n2 format, which is what we use in our latest runs
+(the r-series).  Tipsy binary files are generated according to the
+original Tipsy format formed by Neal Katz and Tom Quinn.  But, a
+seperate .aux file is also generated (via snap2tipsy) that holds
+information like multiple particle metallicities, particle
+star-formation rates, the Tmax of a particle, etc.  
+
+#OPT    +=  -DTIPSYFORMAT
+
+The assumes only the original tipsy format and uses a single
+metallicity (not four species), but I'm not sure if this still works.  
+
+#OPT	+=  -DOWLSFORMAT
+
+This is used with OWLS simulations (Joop Schaye et al.) and doesn't
+really work right.  Don't worry about this.  
+
+#OPT     +=  -DPHYSSPEC
+
+This is a very specific mode for running specexbin that requires a
+seperate set of instructions and is currently obselete in the code.
+This would read a new type of binary file that had all sorts of
+environmental information for individual Sph particles (i.e. how far
+from nearest galaxy, age since ejected in wind, etc.).  
+
+## Shortspec option (turn on if you want to do short straight LOS's)
+
+OPT     +=  -DSHORTSPEC
+
+Turn this on to switch from continuous spectra (default) to short,
+straight lines of sight.  
+
+## Choices for what and how many ions to do.
+
+If none of the below options (and neither PIPELINE) is chosen then
+specexbin defaults to doing 31 ions (using specions_i31.dat and
+ltXXHMQG_i31, where XX are a variety of redshifts, see below).
+However, as this makes cumbersome outputs with a number of ions barely
+used, below you can choose one of the options as long as the
+corresponding ionization files exist.  
+
+OPT     +=  -DDO9IONS
+
+Nine ions chosen that are commonly observed in the low-redshift
+Universe.  For Amanda Ford.  Suffix is _i9 instead of _i31.  
+
+#OPT	+=  -DDOLYAONLY
+
+For doing lyman-alpha only.  Suffix is _lya.  You can always remake
+these files by choosing the first column in each of the ltXXHMQG_i31
+file and the first row of in the specions_i31.dat file.  
+
+#OPT    +=  -DDOHANDHEONLY
+
+For hydrogen and helium only.  Suffix is _HHe.  
+
+#OPT	+=  -DDOO6ONLY
+
+For OVI only.  Suffix is _o6.  
+
+#OPT     +=  -DDO5IONS
+#OPT     +=  -DDO6IONS
+
+For 5 and 6 ions with _i5 and _i6.  These are probably obselete but
+you can always choose 5 or 6 ions and make the lt and specion files as
+long as the columns and rows agree.
+
+#OPT     +=  -DDOHIZIONS
+
+For the hi-z ions I did at z>5.  _hiz suffix.  
+
+## Metallicity painting options
+
+#OPT	+=  -DMETALFLOOR
+#OPT	+=  -DPAINTAVEMETALLICITY=0.09574
+
+METALFLOOR is sort of obselete and added a 10^-3 Zsolar metallicity
+floor to all particles (for high-z stuff); assumes Asplund et
+al. (2005?) abundances.  PAINTAVEMETALLICITY allows you to choose a
+metallicity to paint on.  Z=0.09574 Zsolar is the metallicity used for
+the low-z IGM, but you can change this to be whatever you want.  
+
+#OPT     +=  -DPAINTAVERAGEMETALS=0.0
+
+This is a technical option and is worth skipping.  Although named
+similarly to the previous tag, this is a very different way to paint
+metals onto particles.  It requires the existence of the
+(basename).ionrhot file that tabulates metallicities in 0.1x0.1 dex
+pixels in rho-T phase space.  The argument (0.0) is the log(sigma)
+width of a lognormal distribution added to simulate a random
+dispersion of metallicity; if it is 0.0, no randomity is added.  [This
+may be broken as my understanding of a lognormal distribution is
+wrong.]  
+
+## Other options
+
+#OPT     +=  -DNHLIMIT
+
+NHLIMIT sets a selection of particles at high densities to completely
+neutral in hydrogren according to the Popping et al. (2009) empirical
+requirements (see code and paper).  Also, I sometimes set another
+metal ion species to be completely in that state if all hydrogen is
+neutral and atomic (e.g. MgII), but unfortunately this has to be done
+manually in the code and depends on the columns in the specions file
+used.  
+
+#OPT	 +=  -DBTURB
+
+BTURB adds turbulent line broading to all ions according to an
+empirically derived physical density relation such that b_turb(n_H),
+where b_turb is the turbulent b-parameter.  This is different than the
+thermal b-parameter calculated based on the temperature and affects
+different metal species differently according to their atomic weights.  
+
+#OPT     +=  -DNEUTRALGAS
+
+NEUTRALGAS is used to set a selection of metals to be in completely a
+single state.  For example NEUTRALGAS combined with DOHIZIONS set
+carbon to be in CII, oxygen to be in OI, and silicon to be in SiII,
+which may be expected if these metals reside in a pre-reionization
+IGM.  Needs to be manually changed if you are going to apply your own
+neutral species according to the specions/ltXXHMQG files used.  See
+Oppenheimer & Dave (2009).
+
+#OPT	 +=  -DNONEQUIL
+
+An attempt to put in the non-equilibrium dependences of Gnat &
+Sternberg 2007 for several metal lines (works only with DO6IONS).
+Only in the collisionally ionized regime.  Used in Oppenheimer & Dave
+(2009).  
+
+#OPT	+=  -DZEROVEL
+
+No peculiar velocities used in the code.  This reproduces the case
+where the generated spectrum is a direct translation of the positions
+along the line of sight.  Of course this is nont physical, but used to
+test the effect of velocities, and shows dramatic differences.
+Temperature broadening is also taken out.  
+
+## Pipeline option: a streamlined fast output option.  
+
+#OPT    +=  -DPIPELINE
+
+This runs a streamlined output version of specexbin so that only a
+minimal number of outputs are ouput and requires it's own
+specions/ltXXHMQG files made with PIPE at the end.  
+
+## Mode to run specexbin in: a big option that should be left off for now.
+
+#OPT     +=  -DSMOOTHSPH
+
+SMOOTHSPH is a different way to calculate lines of sight that we
+generally don't use anymore.  This mode smooths SPH particles onto
+bins in physical space and then uses the density, temperature, and
+metallicity of that physical space bin to calculate the optical depth.
+For example, the IonFrac function that calulates the ionization
+fraction for a given ion is run by space bin, instead of per SPH
+particle, which is the default.  See more below on the implementation
+choices in the CODE DETAILS section, but what this effectively does is
+smooth an SPH simulation onto a linear grid and treat it like an
+Eulerian code.  BDO added this as an improvement, but then we realized
+that we were losing the advantage of smooth-particle hydrodynamics,
+and that it was not really consistent with the nature of SPH simulations.  
+
+
+##### End Makefile Options #####
+
+The name of the generated executable with be contspecexbin_v8, but I
+would recommend renaming the executable according to what compile flag
+options are turned on in the Makefile.
+
+For example: 
+
+contspecexbin_v8_i9 if you are going to use the compile option
+DO9IONS, which does only 9 ions that are commonly observed in the z<1
+Universe.
+
+contspecexbin_v8_i9_bturb if you also want to turn on turbulent
+broadening.
+
+contspecexbin_v8_i9_bturb_nh if additionally you put in a neutral
+hydrogen threshold above a certain pressure (according to Popping et
+al. 2010).
+
+IV. INPUT FILES
+
+A. sim_infile 
+
+First command line input. This is a table file with a .tab suffix
+holding the location and redshift range information for the simulation
+snapshots.  An example naming convention is snap_r48n384cwp.tab, but
+the argument would only be snap_r48n384cwp.  The file has 5 columns
+and a row for each simulation snapshot.  Columns:
+
+1) snapname- this is the path + base name of a
+snapshot. e.g. /home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_108
+is the z=0 snapshot for the r48n384cwp run, but refers to
+snap_r48n348cwp_108.bin (tipsy binary) and snap_r48n384cwp_108.aux
+(auxiliary data including metallicity vector, which is needed since
+tipsy format holds only one metallicity).  Note, that there are
+variations on this (espcially for the PHYSSPEC option).
+
+2) redshift_tab- the redshift of the snamshot, which in this case is 0.  
+
+3) redshift_tab_begin- the lower redshift bound where to use this
+snapshot 
+
+4) redshift_tab_end- the upper redshift bound.  
+
+5) sim_id- base name for the output files.  e.g. r48n384cwp, but we
+may make a new sim_infile if we want to change this to
+r48n384cwp_bturb if for example you want to turn on turbulent
+broadening (only column 5 would change in this file along with the
+sim_infile name).  
+
+Example: snap_r48n384cwp.tab
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_088 0.500 0.450 0.550 r48n384cwp
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_092 0.400 0.350 0.450 r48n384cwp
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_096 0.300 0.250 0.350 r48n384cwp
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_100 0.200 0.150 0.250 r48n384cwp
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_104 0.100 0.050 0.150 r48n384cwp
+/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_108 0.000 -0.05 0.050 r48n384cwp
+
+In continuous mode the snapshot will reload when at a box edge that is
+below redshift_tab_begin and continue with the new snapshot in the
+next loop.  So this is not ideal because you would like it to switch
+right at redshift_tab_begin, but I always assumed that the boxlength
+is small compared to the redshift range, but this is not always the
+case.  Also, this switch only affects the particles loaded, but things
+like the ionization background intensity and the physical density of
+the particle (which has to be calculated from tipsy units) is
+continuously interpolated according to the exact redshift at each
+position along the sight line.  Finally, particles move between
+snapshot outputs so there is some non-continuity when switching
+snapshots, but this is something I never worried about much and is a
+reason why I like to put many rows corresponding to many redshifts to
+not have sudden transitions (i.e. you would never want to have a
+column for z=1 and z=0 and switch at z=0.5).  
+
+Note: It's weird to have the z=0 snapshot extend to negative redshift,
+but specexbin does need this to overshoot even though you would
+probably never want to use negative redshifts.  specexbin in
+continuous mode needs to finish the boxlength and this can be negative.  
+
+B. LOSfile
+
+For SHORTSPEC option, this is the file that holds a row for each line
+of sight to be generated seperately.  The columns are as follows:
+
+1, 2, 3)- x, y, and z coordinate of line of sight center.  In tipsy
+format (range -0.5 to 0.5).  
+
+4)- direction: 0- x-direction, 1- y-direction, 2- z-direction
+(default).  This must match the direction argument in the command line
+column or in the case when no direction is given in the command line,
+must be set to 2 (z-direction is the default).  
+
+5)- Base name of the LOS.  The output tau files are called
+specaim.(sim_id).(basename).  Where sim_id is from 5th column of the
+sim_in file.
+
+Everything should work in the x, y, and z coordinates of the box, so
+you shouldn't have to worry about rotating coordinates or anything
+like that.  All three coordinates are given, because the third
+coordinate specifies matches the central redshift (the command line
+argument) to this coordinate.  For example, when running with
+direction=2, the z-direction, the z coordinate will lie at the central
+redshift.  This was implemented so that the outputs of SKID could
+easily be translated into LOS files with specific galaxy at the
+central redshift [Talk to Ben about how to generate LOS files
+targeting specific galaxies].
+
+C. ltXXHMQG_iYY files (CLOUDY ionization lookup tables)
+
+This and IV. are not direct inputs, but need to be placed in a
+directory specified in the code manually to hold "ionization files".  
+
+XX- is redshift where 00 is z=0, and 60 is z=6, etc.  
+YY- is number of ions.  31 is default.   
+
+In these files are YY columns for each ion giving the log of the
+ionization fraction of the corresponding ion (see specions_iYY.dat
+where each column in the lt files correspond to rows in this file).  
+
+There are NTEMP*NRHO rows in the lt files corresponding to a grid of
+temperatures and densitities with YY columns corresponding to the ions
+followed.  The parameters of the file are in iontab.h, and should
+match the parameters in the program used to generate the tables
+(runcloudylt.c), which is another program used to generate these
+tables using CLOUDY (version 8.0).  Generally there NTEMP=140 ranging
+from log(T)=2.5-9.5 and NRHO=240 from log(n_H)= -9.0 - 3.0.  The HMQG
+refers to Haardt & Madau Quasar+Galaxy 2001 background, but this is
+set in contspecexbin_v8.c and can be changed manually (global variable
+ionbkgd- for example I have used H157 which is Haardt & Madau 2005).
+
+Note also that the intensity of the ionization background can be
+modulated using the flux_fac input.  How this works is that the input
+density into the IonFrac function is divided by flux_fac so that the
+ionization background is increased by flux_fac at a given physical
+density.  This prevents us from having to recalculate CLOUDY tables if
+we change the ionization intensity.  
+
+D. specions_iYY.dat (Ion reference file.)
+
+The rows in this file correspond to the columns in the ionization
+tables, so there should by YY rows for YY ions.  The columns are as
+follows.  1) Ion name, 2) wavelength of strongest component
+(e.g. Lyalpha, C IV 1548 Angstrom), 3) oscillator strength, 4) mean
+atomic weight, 5) default mass fraction (primordial assumption for
+hydrogen (0.76) and helium (0.24) and solar metallicity from
+Ander&Grevasse 1989? for metals), 6) Zcolumn (read below), 7) "Alpha
+enhancement".
+
+Columns 5, 6, and 7 are potentially very confusing and are a non-ideal
+solution.  We follow in our version of Gadget-2, 4 metals and the
+metallicity array for each particle.  The Zcolumn refers to which
+array element of the metallicity for each metal (0- carbon, 1- oxygen,
+2- silicon, and 3- iron); in these cases the 5th and 7th columns do
+not matter.  For primordial elements, hydrogen and helium, we do not
+follow these mass fractions and always assume X=0.76 and Y=0.24; they
+always have a Zcolumn=-1 which is used to refer to them in the
+program.  This is an approximation for the IGM where the metallicity
+is assume to be very small (but in reality this is not the case
+especially in galaxies, and also Helium in galaxies is much higher
+from nucleosynthesis).  Zcolumn=-2 is the case where the ion is of a
+metal not followed in the simulations (e.g. nitrogen, neon, etc.) and
+is instead keyed to the oxygen abundance using the following relation:
+(Mass fraction of given metal=column 6)/(Mass fraction of
+oxygen=0.009618)*(gp->metals[1]=Oxygen particle Z)*10^Alpha.    
+
+For example, nitrogen abundance would be:
+1.109e-03/9.618e-03 * gp->metals[1] * 10^-0.7 (given columns 5 and 7).  
+
+The reasoning is that we use the ratio of Anders&Grevasse times the
+"alpha enhancement" to estimate the abundance of these non-tracked
+species.  I initially had this keyed to iron (gp->metals[3]) so this
+really was a true alpha enhancement, but starting in earlier 2010 I
+decided to key off oxygen (hence the quotes) because Neon and
+Magnesium are closely tied to oxygen in SN ejecta.  Their
+"alpha-enhancements" have been scaled to the yields of Chieffi &
+Limongi (2005), hence the quotes.  
+
+The code will have to be manually modified in ionfrac.c and initions.c
+to point to the directory of where you keep your ionization input
+files.  Right now, I put the ltXXHMQG_iYY and specions_i31.dat in
+/home/oppenheimer/ionfiles/.
+
+V. OUTPUT FILES
+
+A. Tau files (used to generate continuum-normalized spectra)- The main
+output files our specztau, specaim, spectau, or phystau files.  These
+are the files that list the optical depths of the ions as a function
+of redshift along with the ion-weighted physical parameters.
+
+--For continuous spectra the naming convention is:
+specztau.(sim_id).(id).z(zhi)_(zlow)
+
+Where (id) is often the angle of the line of sight in degrees, and
+(zhi) and (zlow) are the redshifts multiplied by 100.  For example, a
+specztau.r48n384cwp.10.z600_200 output name means that this sightline
+has an angle of 10-degrees and runs from z=6->2.
+
+--For straight spectra the naming convention is:
+specaim.(sim_id).(namesuffix) 
+
+Where (namesuffix) is from the fifth row of the LOSfile for each
+sightline.  
+
+--For both specztau and specaim files the output format for each row
+corresponding to a redshift bin is:
+Column 1: redshift
+Column 2: log(rho/rho_crit) (mass weighted)= this is log of 1+overdensity.  
+Column 3: log(T) (mass weighted)= this is log of the temperature.
+Column 4: Z (mass weighted)= linear value of the metallicity (i.e. Z,
+not relative to Zsolar).
+
+Columns 5,9,13,... (or 1+4*i where i is ion number starting from 1 to
+31 in the default case): ion-weighted log(rho/rho_crit)
+Columns 6,10,14... 2+4*i: ion-weighted log(T)
+Columns 7,11,15... 3+4*i: ion-weighted Z for metal species.  
+Columns 8,12,16... 4+4*i: optical depth of ion.  
+
+Columns 5+4*Nions, 6+4*Nions, 7+4*Nions where Nions=31 in the default
+case: x, y, and z coordinate of sightline position.  [BDO: I was going
+to use this to find galaxies compared to an angled sight line but
+never have done this and think there might be a small systematic
+offset if you go over a long redshift range.]
+
+--For spectau files (PIPELINE output) the naming convention is:
+spectau.(sim_id).(id).z(zhi)_(zlow).  
+(or nearly the same as the specztau files)
+
+The output format is:
+Columns 1-4: same as specztau/specaim files
+Columns 4+i: optical depth of ion.  
+
+This is stremlined for the case you don't care about the ion-weighted
+physical quantities.  
+
+--For phystau files (PHYSSPEC output, this is very technical and will
+  likely be something that needs to be updated, plus requires the
+  generation of a whole new type of binary snapshot file) the naming
+  convention is:
+phystau.(ionname).(sim_id).(id).(zhi)_(zlow)
+
+And outputs a phystau file for every ion and physical/enivoronmental
+quantities are always ion-weighted:
+Column 1: redshift
+Column 2: log(rho/rho_crit)
+Column 3: log(T)
+Column 4: Z
+Column 5: optical depth of ion.
+Column 6: log(M_*/Msolar) where M_* is the stellar mass of the
+dynamically closest galaxy.  
+Column 7: log(d_gal/kpc) where d_gal is distance in kpc to the galaxy.
+Column 8: log(age/yrs) where age is number of years since gas was
+launched from a galaxy.
+Column 9: n_rec, the average number of times particles contributing to
+absorption that have been recycled in a wind. 
+Column 10: v_launch, the velocity of the wind last time the SPH
+particles were launched.
+Column 11: the average SFR of the absorbing particles, almost always 0.  
+
+B. partzfiles- These files should be identical to their counterpart
+taufiles, e.g. partzfile.r48n384cwp.10.600_200 and hold all the
+particles that fall along a line of sight.  These hold information
+about the particles along the LOS and is used only for error checking.
+Not outputted for the PIPELINE option, and often deleted by me.
+See code, contsmoothspec.c and search for partfile to see output
+format.  
+
+C. binzfiles- These files are also generated for all but the PIPELINE
+option, and have names like binzfile.r48n384cwp.10.600_200 and hold
+LOS information before peculiar velocities are taken into account and
+temperature broadening is calculated.  You can see the name of the
+file by looking for binfile in contsmoothspec.c.  As of now the format
+for these files are:
+
+Column 1: bin number (almost never used)
+Column 2: Redshift
+Column 3: Mass in bin (Tipsy units).  
+Column 4: Velocity at that bin (in km/s).  
+Column 5: Temperature of bin (K, linear).
+Column 6: Density in bin (g/cm^3, linear).  
+Columns 7-10: Metallicities (C, O, Si, Fe in mass fractions).
+Column 11: bincoord, which starts at the edge of a sight line and
+increases for continuous sight lines with unit 1 equal to one box
+length.  If bincoord equals 100 then the continuous sight line has
+gone through 100 box lengths.  In angled sight lines, one path through
+a box can be greater than one.  
+Column 12: binsize, which is the binwidth in terms of box coordinates.  
+Columns 13, 14, & 15- x, y, and z of bin in Tipsy units.  
+
+Some extra columns depending on options (see code).  Right now the
+ion-weighted mass, velocity, density, temperature, and metallicity is
+outputted for the 19th ion, which is NeVIII for specions_i31.dat (this
+was needed to error check the the implementation of Neon in the code.  
+
+Overall, binzfiles were critical for error checking and modifying the
+code when the continuous angled sight lines were implemented.  Also,
+lines starting with # indicate information about transitioning between
+a box edge.  These are still useful sometimes for a User to see what
+is going on.  
+
+VI. RUNNING THE PROGRAM
+
+A. Straight Sightlines- contspecexbin_v8_short
+
+Here is an example of a program that runs short sight lines across the
+z=0.25 r48n384cwp snapshot at positions chosen to be through or close
+to identified galaxies by SKID.  This version of the code is compiled
+with the tags for BTURB, NHLIMIT, and DO9IONS turned on, thus the name
+specexbin_v8_short_bturb_nh_i9:
+
+contspecexbin_v8_short_bturb_nh_i9 snap_r48n384cwp LOS.r48n384cwp.z0.25.zdir.MH120 0.25 48 1.11 2
+
+The first argument is the sim_infile, which necessarily has a row for the z=0.25 snapshot.  
+
+/data3/oppenheimer/sims/r48n384cwp/snap_r48n384cwp_098 0.250000 0.2250 0.2750 r48n384cwp
+
+This may not be the most ideal way to specify what should be the use
+of only a single snapshot, but it is the same file as the continuous
+sight lines.
+
+The 3rd argument specifies the redshift of the snapshot.  
+The 4th argument is the boxlength.
+The 5th argument is the flux_factor (1.11 times the Haardt & Madau 2001 background
+The 6th argument is the direciton (z-direction, and must match column 4 in the LOSfile).  
+
+Here is a shortened example of the LOS file generated via a script to
+draw sight lines through a number of galaxies (4 here) at their
+central positions (.cen), at 25kpc in the y-direction, and at 50kpc in
+the x and y directions.  This short LOS file would make 16 sightlines
+with names such as specaim.r48n384cwp.9024_11.78_10.31.cen, etc.  The
+actual file has has 3050 sight lines and takes about 8 hours to run on
+a single processor.  Note, that running this can fill up hard drive
+space fast.  
+
+##### Begin sample LOS file: LOS.r48n384cwp.z0.25.zdir.MH120 #####
+  0.4594640 -0.2922190  0.3196720 2 9024_11.78_10.31.cen
+ -0.0006673 -0.1363380 -0.2012990 2 3307_11.89_10.43.cen
+  0.0752427  0.0219935  0.0084258 2 16739_12.19_10.86.cen
+  0.0725859  0.0239363  0.0140897 2 16740_11.82_10.34.cen
+  0.4599197 -0.2922190  0.3196720 2 9024_11.78_10.31.y+25kpc
+ -0.0002116 -0.1363380 -0.2012990 2 3307_11.89_10.43.y+25kpc
+  0.0756984  0.0219935  0.0084258 2 16739_12.19_10.86.y+25kpc
+  0.0730416  0.0239363  0.0140897 2 16740_11.82_10.34.y+25kpc
+  0.4603755 -0.2922190  0.3196720 2 9024_11.78_10.31.y+50kpc
+  0.0002441 -0.1363380 -0.2012990 2 3307_11.89_10.43.y+50kpc
+  0.0761542  0.0219935  0.0084258 2 16739_12.19_10.86.y+50kpc
+  0.0734974  0.0239363  0.0140897 2 16740_11.82_10.34.y+50kpc
+  0.4594640 -0.2913075  0.3196720 2 9024_11.78_10.31.x+50kpc
+ -0.0006673 -0.1354265 -0.2012990 2 3307_11.89_10.43.x+50kpc
+  0.0752427  0.0229050  0.0084258 2 16739_12.19_10.86.x+50kpc
+  0.0725859  0.0248478  0.0140897 2 16740_11.82_10.34.x+50kpc
+##### End sample LOS file LOS.r48n384cwp.z0.25.zdir.MH120 #####
+
+Note, that the sight lines through the center, the .cen, should
+probably produce something akin to a DLA, especially since we turn on
+the NHLIMIT to make all neutral gas over a certain pressure range (the
+Popping et al. 2009 constraint).  Unfortunately, specexbin does not
+generate damping wings and would not produce an actual DLA.  
+
+[BDO- weird, the x-coordinate is changing when the y-coordinate should
+be changing (the .x+50kpc versus the .cen files shows a change in the
+y-coordinate).  This is a script issue that generates the LOS files
+and shouldn't affect the general approach we use here.]
+
+IMPORTANT NOTE: The original code from Uffe Hellsten/Romeel Dave would
+do only straight sight lines and wrap particles around the box edges
+in an ingenious way so that there were no loose ends (all bins along
+the spectrum would find all the SPH particles that contributed to
+them), but now the way the code works with variable bin sizes,
+densities, etc. along the sight line this would not be so easy, so
+when running a single sight line across the box there are some "loose
+ends" at the edges (the ends of the specaim file, i.e. the code
+doesn't find the SPH particles across the box edge that contribute to
+the bin at the box edge and therefore the bin is incomplete).  The way
+the code works is to shift the entire box to be centered on the line
+of sight coordinates, so the edge problems would occur at +/-0.5 from
+the pixel (e.g. 0.0725859 0.0248478 -0.2012990 2
+16740_11.82_10.34.x+50kpc would have problems near z=-0.2012290-0.5 =
+-0.70 and z=-0.2012290+0.5=0.30 (which box are at the
+z-coordinate~0.30 in tipsy units)).  The ideal solution would be to
+rewrite the code to check if an SPH particle contributes at both ends
+of a box (which may take some work), and another would be to ignore
+the extreme edges and trust only the bins in the central 0.75 of the
+box.  The choice of 0.75 may or may not be conservative, and depends
+on how peculiar velocities spread particles in velocity space relative
+to the length of the box.  For example, a 1000 km/s peculiar velocity
+would shift a particle about 1/5th of the way across a 48 Mpc/h box at
+z=0.0 (which has a velocity width of 4800 km/s) and this is quite a
+possible situation.  For the sight line example above, we are only
+interested in the area +/-1000 km/s around the redshift of the galaxy
+for this project, so less than half of the box length and this is
+okay.
+
+B. Continuous Angled Sightlines- contspecexbin_v8
+
+Here is an example of a script that will generate 70 sight lines
+between z=2->0 for the r48n384cwp file.  Note that the boxsize is 48
+Mpc/h and the flux_factor is 1.11.  The angles chosen are 10 to 80
+degrees, and sight lines will run nearly 80 boxlengths when generating
+one sightline (i.e. it is like crossing the box 80 times, but of
+course at changing redshifts).  
+
+##### Example script file: r48n384cwp.sh #####
+set model=r48n384cwp
+
+set rlow=0.0
+set rhi=2.0
+
+set boxsize=48.0
+set flux_factor=1.11
+
+  set rlname = `echo $rlow | awk '{printf("%.3d",$1*100)}'`
+  set rhname = `echo $rhi | awk '{printf("%.3d",$1*100)}'`
+
+@ id = 10
+ 
+while($id<80)
+    contspecexbin_v8 snap_${model} ${rlow} ${rhi} ${boxsize} ${flux_factor} ${id}
+    @ id ++
+end
+##### End Example script file #####
+
+It takes about an hour to run a single sight line, so what I often do
+is replace the 10 and 80 as input variables $1 and $2 so that you run
+the command line as follows:
+./r48n384cwp.sh 10 20
+
+which will generate 10 sight lines in about 10 hours for this case.
+As I run this on a multi-processor machine, I will start about 7 of
+these processes so that I generate a set of sight lines in about 12
+hours that comprise a total of about 70x80=5600 boxlengths.  
+
+VII. OTHER INPUT PARAMETERS
+
+There are some input parameters that are located in the code in
+various locations, but may be need to be changed if changing
+resolution or cosmology.
+
+In contspecexbin_v8.c, the cosmological parameters are hardcoded in,
+which is not ideal:
+
+  totMass = 0.28;
+  Lambda = 0.72;
+  Omega_b = 0.046; 
+  H_0 = 70;
+
+These used to be command line inputs, but this was changed.  A better
+place to put them in is in defs.h.  
+
+In defs.h, the resolution of binning in space (ZRES) and in velocity
+(VRES) is specified.  
+
+#define ZRES            3.0e-06
+#define VRES            1.5e-05
+
+The ZRES has a resolution of 333,333 and is the dz of a bin size in
+the binzfiles, while the VRES is the resolution of the output spectau
+files (66,667), so a spectrum from z=2->0 has 133,333 rows.  This has
+not changed since the Uffe Hellsten version.  
+
+VIII. CODE DETAILS
+
+contspecexbin_v8.c
+file_io.c
+getspecparticles.c
+initions.c
+contsmoothspec.c
+ionfrac.c
+tau.c
+outtau.c  
+

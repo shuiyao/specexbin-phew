@@ -1,0 +1,20 @@
+C***************** input parameters for autovp ********************************
+0.5	fsigma -- number of noise vectors subtracted from smooth to get minflux
+2.d15	NHImaxns -- Column density maximum for non-saturated line
+1.d18	NHImaxsat -- Column density maximum for saturated line
+100.	bparmax -- b param maximum
+20.	bminsat -- b param minimum for saturated line
+0.99	freduce -- factor by which b and N are reduced during fitting
+2	fitflag -- 0=Gaussian, 1=Voigt profiles, 2=Gaussian, output equiv wdths
+1.0 	sigmasm -- width of Gaussian smoothing in pixels (smooth.f)
+0.2	bfact -- factor which sets max vel diff to combine lines (combine.f)
+12	nsplitmin -- # of lines above which to split region (splitreg.f)
+4	nlinemin -- min # of lines in split region (splitreg.f)
+4.0	N_sigma -- detection threshold (ew_finder.f)
+50   	maxiter -- maximum number of iterations for Marquardt minimization
+1.d8  	alamdamax -- maximum alamda in Marquardt minimization (minfit.f)
+1.2   	chisqbad -- chisq above which it's a "bad fit", i.e. try 1-par min
+0.8   	chisqgood -- chisq below which it's a "good fit"
+0.001 	chisqtol -- if chisq reduces by less than this factor, it's converged
+0.05   	faccept -- for adding lines, if chisq goes down by more than this,accept
+0.0	fdoublet -- if doublet pos. has less than fdoublet as much flux, discard

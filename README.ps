@@ -1,0 +1,1808 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 38 24 574 768
+%%Title: Enscript Output
+%%For: Ben Oppenheimer
+%%Creator: GNU enscript 1.6.4
+%%CreationDate: Thu Nov 25 17:43:06 2010
+%%Orientation: Landscape
+%%Pages: (atend)
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6 4
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6 4
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 7 7 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [612 792] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-enscript 1.6 4
+%%IncludeResource: font Times-Bold
+%%IncludeResource: font Times-Roman
+
+% Fonts.
+/Times-Bold /HeaderFont-Bold MF
+/HeaderDateF /HeaderFont-Bold findfont 12 scalefont def
+
+/Times-Roman /HeaderFont-Times MF
+/HeaderHDRF /HeaderFont-Times findfont 14 scalefont def
+
+/HeaderPageNumF /Helvetica-Bold findfont 28.8 scalefont def
+
+/do_header {	% print enscript header
+  gsave
+    d_header_x d_header_y translate
+
+    % light bar
+    0 0 d_header_w d_header_h 2 div Box
+    .95 setgray fill
+
+    % dark gray boxes
+    /dbw d_header_h 2 mul def	% dark box width
+    /dbc .7 def			% dark box color
+
+    % left dark box.
+    0 0 dbw d_header_h Box
+    dbc setgray fill
+
+    0 setgray 
+    HeaderDateF setfont
+    moddatestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 2 div 2 add moveto show
+    modtimestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 5 div moveto show
+
+    % right dark box
+    d_header_w dbw sub 0 dbw d_header_h Box
+    dbc setgray fill
+
+    HeaderPageNumF setfont
+    1 setgray
+    pagenumstr dup
+    stringwidth pop dbw exch sub 2 div d_header_w dbw sub add
+    d_header_h .2 mul moveto show
+
+    % filename
+    0 setgray 
+    HeaderHDRF setfont
+    d_header_w fname stringwidth pop sub 2 div d_header_h 8 div moveto
+    fname show
+
+    % user supplied header string.
+    user_header_p {
+      /h d_header_h 8 div 5 mul def
+
+      % Implement strict enscript compatibility.
+      user_header_center_str () eq user_header_right_str () eq and {
+        d_header_w user_header_left_str stringwidth pop sub 2 div 
+        h moveto user_header_left_str show
+      } {
+        dbw 5 add h moveto user_header_left_str show
+
+        d_header_w user_header_center_str stringwidth pop sub 2 div 
+        h moveto user_header_center_str show
+
+	d_header_w dbw sub 5 sub user_header_right_str stringwidth pop
+	sub h moveto user_header_right_str show
+      } ifelse
+    } if
+
+  grestore
+} def
+%%EndResource
+/d_page_w 744 def
+/d_page_h 536 def
+/d_header_x 0 def
+/d_header_y 500 def
+/d_header_w 744 def
+/d_header_h 36 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 744 def
+/d_footer_h 0 def
+/d_output_w 744 def
+/d_output_h 500 def
+/cols 2 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 1 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(##### specexbin README file- by Ben Oppenhemer, last updated 11/24/2010. #####) s
+5 474 M
+(##### BEGIN OUTLINE ####) s
+5 458 M
+(I. INTRODUCTION) s
+5 442 M
+(II. BASIC USAGE) s
+5 434 M
+(A. Straight sightlines) s
+5 426 M
+(B. Continuous sightlines) s
+5 410 M
+(III. COMPILING AND COMPILE TIME OPTIONS  ) s
+5 394 M
+(IV. INPUT FILES) s
+5 386 M
+(A. sim_infile ) s
+5 378 M
+(B. LOSfile) s
+5 370 M
+(C. ltXXHMQG_iYY) s
+5 362 M
+(D. specions_iYY.dat) s
+5 346 M
+(V. OUTPUT FILES) s
+5 338 M
+(A. Tau files) s
+5 330 M
+(B. Parzfiles) s
+5 322 M
+(C. Binzfiles) s
+5 306 M
+(VI. RUNNING THE PROGRAM) s
+5 298 M
+(A. Straight sightlines) s
+5 290 M
+(B. Continuous sightlines) s
+5 274 M
+(VII. OTHER INPUT PARAMETERS) s
+5 258 M
+(VIII. CODE DETAILS \(not done\)) s
+5 242 M
+(##### END OUTLINE #####) s
+5 226 M
+(I. INTRODUCTION) s
+5 210 M
+(Specexbin is our spectral line generator code.  It was a code) s
+5 202 M
+(originally written by Uffe Hellsten and its structure remains the) s
+5 194 M
+(same, however many options have been added and modified.  ) s
+5 178 M
+(The current version of the code has the main program in) s
+5 170 M
+(specexbin_v9.c.) s
+5 154 M
+(Specexbin can be run in two main different modes: 1\) straight) s
+5 146 M
+(sightlines crossing the box along one axis \(compiled with the) s
+5 138 M
+(SHORTSPEC flag on in the Makefile\), and 2\) angled sightlines running) s
+5 130 M
+(continuously looping across the box accounting for evolution) s
+5 122 M
+(\(ionization background, Hubble expansion, and sampling different) s
+5 114 M
+(simulation snapshots corresponding to different redshifts\).  ) s
+5 98 M
+(II. BASIC USAGE:) s
+5 82 M
+(A. Straight sightlines \(SHORTSPEC\)) s
+5 66 M
+(Usage: specexbin_v9_short sim_infile LOSfile redshift_center boxsize flux_factor \(dire) s
+5 58 M
+(ction\)\\n") s
+5 42 M
+(See sim_infile and LOSfile description below in input files.) s
+5 26 M
+(-redshift_center= redshift of the snapshot you are looking at.  ) s
+5 10 M
+(-boxsize= in Mpc/h.  ) s
+377 490 M
+(-flux_factor= factor by which the ionization background intensity is) s
+377 482 M
+( multiplied \(1.0 is the Haardt & Madau 2001 intensity\).) s
+377 466 M
+(-direction= Optional argument for the direction you want to go across) s
+377 458 M
+( the box \(0-x, 1-y, 2-z\).  Default is 2 \(and must match the 4th row in) s
+377 450 M
+( the LOS files- see below\).  ) s
+377 434 M
+(B. Continuous sight lines \(LOSs\) ) s
+377 418 M
+(Usage: specexbin_v9 sim_infile redshift_begin redshift_end boxsize flux_factor theta \() s
+377 410 M
+('x' coord\) \('y' coord\) \(direction\)\\n") s
+377 394 M
+(See sim_infile description below \(same as SHORTSPEC case\).  ) s
+377 378 M
+(-redshift_begin- lower redshift bound of sightline.) s
+377 362 M
+(-redshift_end- upper redshift bound.  ) s
+377 346 M
+(-boxsize= in Mpc/h.  ) s
+377 330 M
+(-flux_factor= factor by which the ionization background intensity is) s
+377 322 M
+( multiplied \(1.0 is the Haardt & Madau 2001 intensity\).) s
+377 306 M
+(-theta= angle of sight line relative to the directional axis in) s
+377 298 M
+( degrees.  In general, I use between 10 and 80, because 0 will be a) s
+377 290 M
+( repeating sight line as well as 90.) s
+377 274 M
+(-'x' and 'y' coordinates- these are optional arguments if you want to) s
+377 266 M
+( specify the beginning coordinates of the sight line.  I personally) s
+377 258 M
+( never use these for my sight lines and a random number generator pick) s
+377 250 M
+( the x and y for the beginning coordinates at z=-0.5.  Coordinates are) s
+377 242 M
+( always in tipsy units: -0.5 - 0.5.  [NOTE: not sure if the) s
+377 234 M
+( functionality of this still works.]) s
+377 218 M
+(-direction= Optional argument for the direction you want to go across) s
+377 210 M
+( the box \(0-x, 1-y, 2-z\).  Default is 2 \(and must match the 4th row in) s
+377 202 M
+( the LOS files- see below\).  [NOTE: not sure if the functionality of) s
+377 194 M
+( this still works.]) s
+377 178 M
+(III. COMPILING AND COMPILE TIME OPTIONS  ) s
+377 162 M
+(When compiling the code, first make sure to run:) s
+377 146 M
+(make clean) s
+377 130 M
+(And then ) s
+377 114 M
+(make specexbin_v9 \(or just make\).) s
+377 98 M
+(In the Makefile there are a number of options specified as "OPT +=) s
+377 90 M
+(-DSHORTSPEC".  In general the default level of the code \(which does) s
+377 82 M
+(continuous sight lines uses only -DTIPSYN2FORMAT turned on\).  One of) s
+377 74 M
+(the simulation snapshot format options must be on \(and only one\).  ) s
+377 58 M
+(##### Begin Makefile Options #####) s
+377 42 M
+(## Simulation snapshot format options.) s
+377 34 M
+(OPT    +=  -DTIPSYN2FORMAT) s
+377 18 M
+(This is the tipsy_n2 format, which is what we use in our latest runs) s
+377 10 M
+(\(the r-series\).  Tipsy binary files are generated according to the) s
+377 2 M
+(original Tipsy format formed by Neal Katz and Tom Quinn.  But, a) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 2 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (2) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(seperate .aux file is also generated \(via snap2tipsy\) that holds) s
+5 482 M
+(information like multiple particle metallicities, particle) s
+5 474 M
+(star-formation rates, the Tmax of a particle, etc.  ) s
+5 458 M
+(#OPT    +=  -DTIPSYFORMAT) s
+5 442 M
+(The assumes only the original tipsy format and uses a single) s
+5 434 M
+(metallicity \(not four species\), but I'm not sure if this still works.  ) s
+5 418 M
+(#OPT    +=  -DOWLSFORMAT) s
+5 402 M
+(This is used with OWLS simulations \(Joop Schaye et al.\) and doesn't) s
+5 394 M
+(really work right.  Don't worry about this.  ) s
+5 378 M
+(#OPT     +=  -DPHYSSPEC) s
+5 362 M
+(This is a very specific mode for running specexbin that requires a) s
+5 354 M
+(seperate set of instructions and is currently obselete in the code.) s
+5 346 M
+(This would read a new type of binary file that had all sorts of) s
+5 338 M
+(environmental information for individual Sph particles \(i.e. how far) s
+5 330 M
+(from nearest galaxy, age since ejected in wind, etc.\).  ) s
+5 314 M
+(## Shortspec option \(turn on if you want to do short straight LOS's\)) s
+5 298 M
+(OPT     +=  -DSHORTSPEC) s
+5 282 M
+(Turn this on to switch from continuous spectra \(default\) to short,) s
+5 274 M
+(straight lines of sight.  ) s
+5 258 M
+(## Choices for what and how many ions to do.) s
+5 242 M
+(If none of the below options \(and neither PIPELINE\) is chosen then) s
+5 234 M
+(specexbin defaults to doing 31 ions \(using specions_i31.dat and) s
+5 226 M
+(ltXXHMQG_i31, where XX are a variety of redshifts, see below\).) s
+5 218 M
+(However, as this makes cumbersome outputs with a number of ions barely) s
+5 210 M
+(used, below you can choose one of the options as long as the) s
+5 202 M
+(corresponding ionization files exist.  ) s
+5 186 M
+(OPT     +=  -DDO9IONS) s
+5 170 M
+(Nine ions chosen that are commonly observed in the low-redshift) s
+5 162 M
+(Universe.  For Amanda Ford.  Suffix is _i9 instead of _i31.  ) s
+5 146 M
+(#OPT    +=  -DDOLYAONLY) s
+5 130 M
+(For doing lyman-alpha only.  Suffix is _lya.  You can always remake) s
+5 122 M
+(these files by choosing the first column in each of the ltXXHMQG_i31) s
+5 114 M
+(file and the first row of in the specions_i31.dat file.  ) s
+5 98 M
+(#OPT    +=  -DDOHANDHEONLY) s
+5 82 M
+(For hydrogen and helium only.  Suffix is _HHe.  ) s
+5 66 M
+(#OPT    +=  -DDOO6ONLY) s
+5 50 M
+(For OVI only.  Suffix is _o6.  ) s
+5 34 M
+(#OPT     +=  -DDO5IONS) s
+5 26 M
+(#OPT     +=  -DDO6IONS) s
+5 10 M
+(For 5 and 6 ions with _i5 and _i6.  These are probably obselete but) s
+5 2 M
+(you can always choose 5 or 6 ions and make the lt and specion files as) s
+377 490 M
+(long as the columns and rows agree.) s
+377 474 M
+(#OPT     +=  -DDOHIZIONS) s
+377 458 M
+(For the hi-z ions I did at z>5.  _hiz suffix.  ) s
+377 442 M
+(## Metallicity painting options) s
+377 426 M
+(#OPT    +=  -DMETALFLOOR) s
+377 418 M
+(#OPT    +=  -DPAINTAVEMETALLICITY=0.09574) s
+377 402 M
+(METALFLOOR is sort of obselete and added a 10^-3 Zsolar metallicity) s
+377 394 M
+(floor to all particles \(for high-z stuff\); assumes Asplund et) s
+377 386 M
+(al. \(2005?\) abundances.  PAINTAVEMETALLICITY allows you to choose a) s
+377 378 M
+(metallicity to paint on.  Z=0.09574 Zsolar is the metallicity used for) s
+377 370 M
+(the low-z IGM, but you can change this to be whatever you want.  ) s
+377 354 M
+(#OPT     +=  -DPAINTAVERAGEMETALS=0.0) s
+377 338 M
+(This is a technical option and is worth skipping.  Although named) s
+377 330 M
+(similarly to the previous tag, this is a very different way to paint) s
+377 322 M
+(metals onto particles.  It requires the existence of the) s
+377 314 M
+(\(basename\).ionrhot file that tabulates metallicities in 0.1x0.1 dex) s
+377 306 M
+(pixels in rho-T phase space.  The argument \(0.0\) is the log\(sigma\)) s
+377 298 M
+(width of a lognormal distribution added to simulate a random) s
+377 290 M
+(dispersion of metallicity; if it is 0.0, no randomity is added.  [This) s
+377 282 M
+(may be broken as my understanding of a lognormal distribution is) s
+377 274 M
+(wrong.]  ) s
+377 258 M
+(## Other options) s
+377 242 M
+(#OPT     +=  -DNHLIMIT) s
+377 226 M
+(NHLIMIT sets a selection of particles at high densities to completely) s
+377 218 M
+(neutral in hydrogren according to the Popping et al. \(2009\) empirical) s
+377 210 M
+(requirements \(see code and paper\).  Also, I sometimes set another) s
+377 202 M
+(metal ion species to be completely in that state if all hydrogen is) s
+377 194 M
+(neutral and atomic \(e.g. MgII\), but unfortunately this has to be done) s
+377 186 M
+(manually in the code and depends on the columns in the specions file) s
+377 178 M
+(used.  ) s
+377 162 M
+(#OPT     +=  -DBTURB) s
+377 146 M
+(BTURB adds turbulent line broading to all ions according to an) s
+377 138 M
+(empirically derived physical density relation such that b_turb\(n_H\),) s
+377 130 M
+(where b_turb is the turbulent b-parameter.  This is different than the) s
+377 122 M
+(thermal b-parameter calculated based on the temperature and affects) s
+377 114 M
+(different metal species differently according to their atomic weights.  ) s
+377 98 M
+(#OPT     +=  -DNEUTRALGAS) s
+377 82 M
+(NEUTRALGAS is used to set a selection of metals to be in completely a) s
+377 74 M
+(single state.  For example NEUTRALGAS combined with DOHIZIONS set) s
+377 66 M
+(carbon to be in CII, oxygen to be in OI, and silicon to be in SiII,) s
+377 58 M
+(which may be expected if these metals reside in a pre-reionization) s
+377 50 M
+(IGM.  Needs to be manually changed if you are going to apply your own) s
+377 42 M
+(neutral species according to the specions/ltXXHMQG files used.  See) s
+377 34 M
+(Oppenheimer & Dave \(2009\).) s
+377 18 M
+(#OPT     +=  -DNONEQUIL) s
+377 2 M
+(An attempt to put in the non-equilibrium dependences of Gnat &) s
+_R
+S
+%%Page: (3) 3
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 3 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (3) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(Sternberg 2007 for several metal lines \(works only with DO6IONS\).) s
+5 482 M
+(Only in the collisionally ionized regime.  Used in Oppenheimer & Dave) s
+5 474 M
+(\(2009\).  ) s
+5 458 M
+(#OPT    +=  -DZEROVEL) s
+5 442 M
+(No peculiar velocities used in the code.  This reproduces the case) s
+5 434 M
+(where the generated spectrum is a direct translation of the positions) s
+5 426 M
+(along the line of sight.  Of course this is nont physical, but used to) s
+5 418 M
+(test the effect of velocities, and shows dramatic differences.) s
+5 410 M
+(Temperature broadening is also taken out.  ) s
+5 394 M
+(## Pipeline option: a streamlined fast output option.  ) s
+5 378 M
+(#OPT    +=  -DPIPELINE) s
+5 362 M
+(This runs a streamlined output version of specexbin so that only a) s
+5 354 M
+(minimal number of outputs are ouput and requires it's own) s
+5 346 M
+(specions/ltXXHMQG files made with PIPE at the end.  ) s
+5 330 M
+(## Mode to run specexbin in: a big option that should be left off for now.) s
+5 314 M
+(#OPT     +=  -DSMOOTHSPH) s
+5 298 M
+(SMOOTHSPH is a different way to calculate lines of sight that we) s
+5 290 M
+(generally don't use anymore.  This mode smooths SPH particles onto) s
+5 282 M
+(bins in physical space and then uses the density, temperature, and) s
+5 274 M
+(metallicity of that physical space bin to calculate the optical depth.) s
+5 266 M
+(For example, the IonFrac function that calulates the ionization) s
+5 258 M
+(fraction for a given ion is run by space bin, instead of per SPH) s
+5 250 M
+(particle, which is the default.  See more below on the implementation) s
+5 242 M
+(choices in the CODE DETAILS section, but what this effectively does is) s
+5 234 M
+(smooth an SPH simulation onto a linear grid and treat it like an) s
+5 226 M
+(Eulerian code.  BDO added this as an improvement, but then we realized) s
+5 218 M
+(that we were losing the advantage of smooth-particle hydrodynamics,) s
+5 210 M
+(and that it was not really consistent with the nature of SPH simulations.  ) s
+5 186 M
+(##### End Makefile Options #####) s
+5 170 M
+(The name of the generated executable with be specexbin_v9, but I would) s
+5 162 M
+(recommend renaming the executable according to what compile flag) s
+5 154 M
+(options are turned on in the Makefile.) s
+5 138 M
+(For example: ) s
+5 122 M
+(specexbin_v9_i9 if you are going to use the compile option DO9IONS,) s
+5 114 M
+(which does only 9 ions that are commonly observed in the z<1 Universe.  ) s
+5 98 M
+(specexbin_v9_i9_bturb if you also want to turn on turbulent broadening.  ) s
+5 82 M
+(specexbin_v9_i9_bturb_nh if additionally you put in a neutral hydrogen) s
+5 74 M
+(threshold above a certain pressure \(according to Popping et al. 2010\).  ) s
+5 58 M
+(IV. INPUT FILES) s
+5 42 M
+(A. sim_infile ) s
+5 26 M
+(First command line input. This is a table file with a .tab suffix) s
+5 18 M
+(holding the location and redshift range information for the simulation) s
+5 10 M
+(snapshots.  An example naming convention is snap_r48n384cwp.tab, but) s
+5 2 M
+(the argument would only be snap_r48n384cwp.  The file has 5 columns) s
+377 490 M
+(and a row for each simulation snapshot.  Columns:) s
+377 474 M
+(1\) snapname- this is the path + base name of a) s
+377 466 M
+(snapshot. e.g. /home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_108) s
+377 458 M
+(is the z=0 snapshot for the r48n384cwp run, but refers to) s
+377 450 M
+(snap_r48n348cwp_108.bin \(tipsy binary\) and snap_r48n384cwp_108.aux) s
+377 442 M
+(\(auxiliary data including metallicity vector, which is needed since) s
+377 434 M
+(tipsy format holds only one metallicity\).  Note, that there are) s
+377 426 M
+(variations on this \(espcially for the PHYSSPEC option\).) s
+377 410 M
+(2\) redshift_tab- the redshift of the snamshot, which in this case is 0.  ) s
+377 394 M
+(3\) redshift_tab_begin- the lower redshift bound where to use this) s
+377 386 M
+(snapshot ) s
+377 370 M
+(4\) redshift_tab_end- the upper redshift bound.  ) s
+377 354 M
+(5\) sim_id- base name for the output files.  e.g. r48n384cwp, but we) s
+377 346 M
+(may make a new sim_infile if we want to change this to) s
+377 338 M
+(r48n384cwp_bturb if for example you want to turn on turbulent) s
+377 330 M
+(broadening \(only column 5 would change in this file along with the) s
+377 322 M
+(sim_infile name\).  ) s
+377 306 M
+(Example: snap_r48n384cwp.tab) s
+377 298 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_088 0.500 0.450 0.550 r48n384cwp) s
+377 290 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_092 0.400 0.350 0.450 r48n384cwp) s
+377 282 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_096 0.300 0.250 0.350 r48n384cwp) s
+377 274 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_100 0.200 0.150 0.250 r48n384cwp) s
+377 266 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_104 0.100 0.050 0.150 r48n384cwp) s
+377 258 M
+(/home/oppenheimer/sims/r48n348cwp/snap_r48n384cwp_108 0.000 -0.05 0.050 r48n384cwp) s
+377 242 M
+(In continuous mode the snapshot will reload when at a box edge that is) s
+377 234 M
+(below redshift_tab_begin and continue with the new snapshot in the) s
+377 226 M
+(next loop.  So this is not ideal because you would like it to switch) s
+377 218 M
+(right at redshift_tab_begin, but I always assumed that the boxlength) s
+377 210 M
+(is small compared to the redshift range, but this is not always the) s
+377 202 M
+(case.  Also, this switch only affects the particles loaded, but things) s
+377 194 M
+(like the ionization background intensity and the physical density of) s
+377 186 M
+(the particle \(which has to be calculated from tipsy units\) is) s
+377 178 M
+(continuously interpolated according to the exact redshift at each) s
+377 170 M
+(position along the sight line.  Finally, particles move between) s
+377 162 M
+(snapshot outputs so there is some non-continuity when switching) s
+377 154 M
+(snapshots, but this is something I never worried about much and is a) s
+377 146 M
+(reason why I like to put many rows corresponding to many redshifts to) s
+377 138 M
+(not have sudden transitions \(i.e. you would never want to have a) s
+377 130 M
+(column for z=1 and z=0 and switch at z=0.5\).  ) s
+377 114 M
+(Note: It's weird to have the z=0 snapshot extend to negative redshift,) s
+377 106 M
+(but specexbin does need this to overshoot even though you would) s
+377 98 M
+(probably never want to use negative redshifts.  specexbin in) s
+377 90 M
+(continuous mode needs to finish the boxlength and this can be negative.  ) s
+377 74 M
+(B. LOSfile) s
+377 58 M
+(For SHORTSPEC option, this is the file that holds a row for each line) s
+377 50 M
+(of sight to be generated seperately.  The columns are as follows:) s
+377 34 M
+(1, 2, 3\)- x, y, and z coordinate of line of sight center.  In tipsy) s
+377 26 M
+(format \(range -0.5 to 0.5\).  ) s
+377 10 M
+(4\)- direction: 0- x-direction, 1- y-direction, 2- z-direction) s
+377 2 M
+(\(default\).  This must match the direction argument in the command line) s
+_R
+S
+%%Page: (4) 4
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 4 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (4) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(column or in the case when no direction is given in the command line,) s
+5 482 M
+(must be set to 2 \(z-direction is the default\).  ) s
+5 466 M
+(5\)- Base name of the LOS.  The output tau files are called) s
+5 458 M
+(specaim.\(basename\).  ) s
+5 442 M
+(Everything should work in the x, y, and z coordinates of the box, so) s
+5 434 M
+(you shouldn't have to worry about rotating coordinates or anything) s
+5 426 M
+(like that.  All three coordinates are given, because the third) s
+5 418 M
+(coordinate specifies matches the central redshift \(the command line) s
+5 410 M
+(argument\) to this coordinate.  For example, when running with) s
+5 402 M
+(direction=2, the z-direction, the z coordinate will lie at the central) s
+5 394 M
+(redshift.  This was implemented so that the outputs of SKID could) s
+5 386 M
+(easily be translated into LOS files with specific galaxy at the) s
+5 378 M
+(central redshift [Talk to Ben about how to generate LOS files) s
+5 370 M
+(targeting specific galaxies].) s
+5 354 M
+(C. ltXXHMQG_iYY files \(CLOUDY ionization lookup tables\)) s
+5 338 M
+(This and IV. are not direct inputs, but need to be placed in a) s
+5 330 M
+(directory specified in the code manually to hold "ionization files".  ) s
+5 314 M
+(XX- is redshift where 00 is z=0, and 60 is z=6, etc.  ) s
+5 306 M
+(YY- is number of ions.  31 is default.   ) s
+5 290 M
+(In these files are YY columns for each ion giving the log of the) s
+5 282 M
+(ionization fraction of the corresponding ion \(see specions_iYY.dat) s
+5 274 M
+(where each column in the lt files correspond to rows in this file\).  ) s
+5 258 M
+(There are NTEMP*NRHO rows in the lt files corresponding to a grid of) s
+5 250 M
+(temperatures and densitities with YY columns corresponding to the ions) s
+5 242 M
+(followed.  The parameters of the file are in iontab.h, and should) s
+5 234 M
+(match the parameters in the program used to generate the tables) s
+5 226 M
+(\(runcloudylt.c\), which is another program used to generate these) s
+5 218 M
+(tables using CLOUDY \(version 8.0\).  Generally there NTEMP=140 ranging) s
+5 210 M
+(from log\(T\)=2.5-9.5 and NRHO=240 from log\(n_H\)= -9.0 - 3.0.  The HMQG) s
+5 202 M
+(refers to Haardt & Madau Quasar+Galaxy 2001 background, but this is) s
+5 194 M
+(set in contspecexbin_v8.c and can be changed manually \(global variable) s
+5 186 M
+(ionbkgd- for example I have used H157 which is Haardt & Madau 2005\).) s
+5 170 M
+(Note also that the intensity of the ionization background can be) s
+5 162 M
+(modulated using the flux_fac input.  How this works is that the input) s
+5 154 M
+(density into the IonFrac function is divided by flux_fac so that the) s
+5 146 M
+(ionization background is increased by flux_fac at a given physical) s
+5 138 M
+(density.  This prevents us from having to recalculate CLOUDY tables if) s
+5 130 M
+(we change the ionization intensity.  ) s
+5 114 M
+(D. specions_iYY.dat \(Ion reference file.\)) s
+5 98 M
+(The rows in this file correspond to the columns in the ionization) s
+5 90 M
+(tables, so there should by YY rows for YY ions.  The columns are as) s
+5 82 M
+(follows.  1\) Ion name, 2\) wavelength of strongest component) s
+5 74 M
+(\(e.g. Lyalpha, C IV 1548 Angstrom\), 3\) oscillator strength, 4\) mean) s
+5 66 M
+(atomic weight, 5\) default mass fraction \(primordial assumption for) s
+5 58 M
+(hydrogen \(0.76\) and helium \(0.24\) and solar metallicity from) s
+5 50 M
+(Ander&Grevasse 1989? for metals\), 6\) Zcolumn \(read below\), 7\) "Alpha) s
+5 42 M
+(enhancement".) s
+5 26 M
+(Columns 5, 6, and 7 are potentially very confusing and are a non-ideal) s
+5 18 M
+(solution.  We follow in our version of Gadget-2, 4 metals and the) s
+5 10 M
+(metallicity array for each particle.  The Zcolumn refers to which) s
+5 2 M
+(array element of the metallicity for each metal \(0- carbon, 1- oxygen,) s
+377 490 M
+(2- silicon, and 3- iron\); in these cases the 5th and 7th columns do) s
+377 482 M
+(not matter.  For primordial elements, hydrogen and helium, we do not) s
+377 474 M
+(follow these mass fractions and always assume X=0.76 and Y=0.24; they) s
+377 466 M
+(always have a Zcolumn=-1 which is used to refer to them in the) s
+377 458 M
+(program.  This is an approximation for the IGM where the metallicity) s
+377 450 M
+(is assume to be very small \(but in reality this is not the case) s
+377 442 M
+(especially in galaxies, and also Helium in galaxies is much higher) s
+377 434 M
+(from nucleosynthesis\).  Zcolumn=-2 is the case where the ion is of a) s
+377 426 M
+(metal not followed in the simulations \(e.g. nitrogen, neon, etc.\) and) s
+377 418 M
+(is instead keyed to the oxygen abundance using the following relation:) s
+377 410 M
+(\(Mass fraction of given metal=column 6\)/\(Mass fraction of) s
+377 402 M
+(oxygen=0.009618\)*\(gp->metals[1]=Oxygen particle Z\)*10^Alpha.    ) s
+377 386 M
+(For example, nitrogen abundance would be:) s
+377 378 M
+(1.109e-03/9.618e-03 * gp->metals[1] * 10^-0.7 \(given columns 5 and 7\).  ) s
+377 362 M
+(The reasoning is that we use the ratio of Anders&Grevasse times the) s
+377 354 M
+("alpha enhancement" to estimate the abundance of these non-tracked) s
+377 346 M
+(species.  I initially had this keyed to iron \(gp->metals[3]\) so this) s
+377 338 M
+(really was a true alpha enhancement, but starting in earlier 2010 I) s
+377 330 M
+(decided to key off oxygen \(hence the quotes\) because Neon and) s
+377 322 M
+(Magnesium are closely tied to oxygen in SN ejecta.  Their) s
+377 314 M
+("alpha-enhancements" have been scaled to the yields of Chieffi &) s
+377 306 M
+(Limongi \(2005\), hence the quotes.  ) s
+377 290 M
+(The code will have to be manually modified in ionfrac.c and initions.c) s
+377 282 M
+(to point to the directory of where you keep your ionization input) s
+377 274 M
+(files.  Right now, I put the ltXXHMQG_iYY and specions_i31.dat in) s
+377 266 M
+(/home/oppenheimer/ionfiles/.) s
+377 250 M
+(V. OUTPUT FILES) s
+377 234 M
+(A. Tau files \(used to generate continuum-normalized spectra\)- The main) s
+377 226 M
+(output files our specztau, specaim, spectau, or phystau files.  These) s
+377 218 M
+(are the files that list the optical depths of the ions as a function) s
+377 210 M
+(of redshift along with the ion-weighted physical parameters.) s
+377 194 M
+(--For continuous spectra the naming convention is:) s
+377 186 M
+(specztau.\(sim_id\).\(id\).z\(zhi\)_\(zlow\)) s
+377 170 M
+(Where \(id\) is often the angle of the line of sight in degrees, and) s
+377 162 M
+(\(zhi\) and \(zlow\) are the redshifts multiplied by 100.  For example, a) s
+377 154 M
+(specztau.r48n384cwp.10.z600_200 output name means that this sightline) s
+377 146 M
+(has an angle of 10-degrees and runs from z=6->2.) s
+377 130 M
+(--For straight spectra the naming convention is:) s
+377 122 M
+(specaim.\(sim_id\).\(namesuffix\) ) s
+377 106 M
+(Where \(namesuffix\) is from the fifth row of the LOSfile for each) s
+377 98 M
+(sightline.  ) s
+377 82 M
+(--For both specztau and specaim files the output format for each row) s
+377 74 M
+(corresponding to a redshift bin is:) s
+377 66 M
+(Column 1: redshift) s
+377 58 M
+(Column 2: log\(rho/rho_crit\) \(mass weighted\)= this is log of 1+overdensity.  ) s
+377 50 M
+(Column 3: log\(T\) \(mass weighted\)= this is log of the temperature.) s
+377 42 M
+(Column 4: Z \(mass weighted\)= linear value of the metallicity \(i.e. Z,) s
+377 34 M
+(not relative to Zsolar\).) s
+377 18 M
+(Columns 5,9,13,... \(or 1+4*i where i is ion number starting from 1 to) s
+377 10 M
+(31 in the default case\): ion-weighted log\(rho/rho_crit\)) s
+377 2 M
+(Columns 6,10,14... 2+4*i: ion-weighted log\(T\)) s
+_R
+S
+%%Page: (5) 5
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 5 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (5) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(Columns 7,11,15... 3+4*i: ion-weighted Z for metal species.  ) s
+5 482 M
+(Columns 8,12,16... 4+4*i: optical depth of ion.  ) s
+5 466 M
+(Columns 5+4*Nions, 6+4*Nions, 7+4*Nions where Nions=31 in the default) s
+5 458 M
+(case: x, y, and z coordinate of sightline position.  [BDO: I was going) s
+5 450 M
+(to use this to find galaxies compared to an angled sight line but) s
+5 442 M
+(never have done this and think there might be a small systematic) s
+5 434 M
+(offset if you go over a long redshift range.]) s
+5 418 M
+(--For spectau files \(PIPELINE output\) the naming convention is:) s
+5 410 M
+(spectau.\(sim_id\).\(id\).z\(zhi\)_\(zlow\).  ) s
+5 402 M
+(\(or nearly the same as the specztau files\)) s
+5 386 M
+(The output format is:) s
+5 378 M
+(Columns 1-4: same as specztau/specaim files) s
+5 370 M
+(Columns 4+i: optical depth of ion.  ) s
+5 354 M
+(This is stremlined for the case you don't care about the ion-weighted) s
+5 346 M
+(physical quantities.  ) s
+5 330 M
+(--For phystau files \(PHYSSPEC output, this is very technical and will) s
+5 322 M
+(  likely be something that needs to be updated, plus requires the) s
+5 314 M
+(  generation of a whole new type of binary snapshot file\) the naming) s
+5 306 M
+(  convention is:) s
+5 298 M
+(phystau.\(ionname\).\(sim_id\).\(id\).\(zhi\)_\(zlow\)) s
+5 282 M
+(And outputs a phystau file for every ion and physical/enivoronmental) s
+5 274 M
+(quantities are always ion-weighted:) s
+5 266 M
+(Column 1: redshift) s
+5 258 M
+(Column 2: log\(rho/rho_crit\)) s
+5 250 M
+(Column 3: log\(T\)) s
+5 242 M
+(Column 4: Z) s
+5 234 M
+(Column 5: optical depth of ion.) s
+5 226 M
+(Column 6: log\(M_*/Msolar\) where M_* is the stellar mass of the) s
+5 218 M
+(dynamically closest galaxy.  ) s
+5 210 M
+(Column 7: log\(d_gal/kpc\) where d_gal is distance in kpc to the galaxy.) s
+5 202 M
+(Column 8: log\(age/yrs\) where age is number of years since gas was) s
+5 194 M
+(launched from a galaxy.) s
+5 186 M
+(Column 9: n_rec, the average number of times particles contributing to) s
+5 178 M
+(absorption that have been recycled in a wind. ) s
+5 170 M
+(Column 10: v_launch, the velocity of the wind last time the SPH) s
+5 162 M
+(particles were launched.) s
+5 154 M
+(Column 11: the average SFR of the absorbing particles, almost always 0.  ) s
+5 138 M
+(B. partzfiles- These files should be identical to their counterpart) s
+5 130 M
+(taufiles, e.g. partzfile.r48n384cwp.10.600_200 and hold all the) s
+5 122 M
+(particles that fall along a line of sight.  These hold information) s
+5 114 M
+(about the particles along the LOS and is used only for error checking.) s
+5 106 M
+(Not outputted for the PIPELINE option, and often deleted by me.) s
+5 98 M
+(See code, contsmoothspec.c and search for partfile to see output) s
+5 90 M
+(format.  ) s
+5 74 M
+(C. binzfiles- These files are also generated for all but the PIPELINE) s
+5 66 M
+(option, and have names like binzfile.r48n384cwp.10.600_200 and hold) s
+5 58 M
+(LOS information before peculiar velocities are taken into account and) s
+5 50 M
+(temperature broadening is calculated.  You can see the name of the) s
+5 42 M
+(file by looking for binfile in contsmoothspec.c.  As of now the format) s
+5 34 M
+(for these files are:) s
+5 18 M
+(Column 1: bin number \(almost never used\)) s
+5 10 M
+(Column 2: Redshift) s
+5 2 M
+(Column 3: Mass in bin \(Tipsy units\).  ) s
+377 490 M
+(Column 4: Velocity at that bin \(in km/s\).  ) s
+377 482 M
+(Column 5: Temperature of bin \(K, linear\).) s
+377 474 M
+(Column 6: Density in bin \(g/cm^3, linear\).  ) s
+377 466 M
+(Columns 7-10: Metallicities \(C, O, Si, Fe in mass fractions\).) s
+377 458 M
+(Column 11: bincoord, which starts at the edge of a sight line and) s
+377 450 M
+(increases for continuous sight lines with unit 1 equal to one box) s
+377 442 M
+(length.  If bincoord equals 100 then the continuous sight line has) s
+377 434 M
+(gone through 100 box lengths.  In angled sight lines, one path through) s
+377 426 M
+(a box can be greater than one.  ) s
+377 418 M
+(Column 12: binsize, which is the binwidth in terms of box coordinates.  ) s
+377 410 M
+(Columns 13, 14, & 15- x, y, and z of bin in Tipsy units.  ) s
+377 394 M
+(Some extra columns depending on options \(see code\).  Right now the) s
+377 386 M
+(ion-weighted mass, velocity, density, temperature, and metallicity is) s
+377 378 M
+(outputted for the 19th ion, which is NeVIII for specions_i31.dat \(this) s
+377 370 M
+(was needed to error check the the implementation of Neon in the code.  ) s
+377 354 M
+(Overall, binzfiles were critical for error checking and modifying the) s
+377 346 M
+(code when the continuous angled sight lines were implemented.  Also,) s
+377 338 M
+(lines starting with # indicate information about transitioning between) s
+377 330 M
+(a box edge.  These are still useful sometimes for a User to see what) s
+377 322 M
+(is going on.  ) s
+377 306 M
+(VI. RUNNING THE PROGRAM) s
+377 290 M
+(A. Straight Sightlines- specexbin_v9_short) s
+377 274 M
+(Here is an example of a program that runs short sight lines across the) s
+377 266 M
+(z=0.25 r48n384cwp snapshot at positions chosen to be through or close) s
+377 258 M
+(to identified galaxies by SKID.  This version of the code is compiled) s
+377 250 M
+(with the tags for BTURB, NHLIMIT, and DO9IONS turned on, thus the name) s
+377 242 M
+(specexbin_v9_short_bturb_nh_i9:) s
+377 226 M
+(specexbin_v9_short_bturb_nh_i9 snap_r48n384cwp LOS.r48n384cwp.z0.25.zdir.MH120 0.25 48) s
+377 218 M
+( 1.11 2) s
+377 202 M
+(The first argument is the sim_infile, which necessarily has a row for the z=0.25 snaps) s
+377 194 M
+(hot.  ) s
+377 178 M
+(/data3/oppenheimer/sims/r48n384cwp/snap_r48n384cwp_098 0.250000 0.2250 0.2750 r48n384c) s
+377 170 M
+(wp) s
+377 154 M
+(This may not be the most ideal way to specify what should be the use) s
+377 146 M
+(of only a single snapshot, but it is the same file as the continuous) s
+377 138 M
+(sight lines.) s
+377 122 M
+(The 3rd argument specifies the redshift of the snapshot.  ) s
+377 114 M
+(The 4th argument is the boxlength.) s
+377 106 M
+(The 5th argument is the flux_factor \(1.11 times the Haardt & Madau 2001 background) s
+377 98 M
+(The 6th argument is the direciton \(z-direction, and must match column 4 in the LOSfile) s
+377 90 M
+(\).  ) s
+377 74 M
+(Here is a shortened example of the LOS file generated via a script to) s
+377 66 M
+(draw sight lines through a number of galaxies \(4 here\) at their) s
+377 58 M
+(central positions \(.cen\), at 25kpc in the y-direction, and at 50kpc in) s
+377 50 M
+(the x and y directions.  This short LOS file would make 16 sightlines) s
+377 42 M
+(with names such as specaim.r48n384cwp.9024_11.78_10.31.cen, etc.  The) s
+377 34 M
+(actual file has has 3050 sight lines and takes about 8 hours to run on) s
+377 26 M
+(a single processor.  Note, that running this can fill up hard drive) s
+377 18 M
+(space fast.  ) s
+377 2 M
+(##### Begin sample LOS file: LOS.r48n384cwp.z0.25.zdir.MH120 #####) s
+_R
+S
+%%Page: (6) 6
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 6 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (6) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 490 M
+(  0.4594640 -0.2922190  0.3196720 2 9024_11.78_10.31.cen) s
+5 482 M
+( -0.0006673 -0.1363380 -0.2012990 2 3307_11.89_10.43.cen) s
+5 474 M
+(  0.0752427  0.0219935  0.0084258 2 16739_12.19_10.86.cen) s
+5 466 M
+(  0.0725859  0.0239363  0.0140897 2 16740_11.82_10.34.cen) s
+5 458 M
+(  0.4599197 -0.2922190  0.3196720 2 9024_11.78_10.31.y+25kpc) s
+5 450 M
+( -0.0002116 -0.1363380 -0.2012990 2 3307_11.89_10.43.y+25kpc) s
+5 442 M
+(  0.0756984  0.0219935  0.0084258 2 16739_12.19_10.86.y+25kpc) s
+5 434 M
+(  0.0730416  0.0239363  0.0140897 2 16740_11.82_10.34.y+25kpc) s
+5 426 M
+(  0.4603755 -0.2922190  0.3196720 2 9024_11.78_10.31.y+50kpc) s
+5 418 M
+(  0.0002441 -0.1363380 -0.2012990 2 3307_11.89_10.43.y+50kpc) s
+5 410 M
+(  0.0761542  0.0219935  0.0084258 2 16739_12.19_10.86.y+50kpc) s
+5 402 M
+(  0.0734974  0.0239363  0.0140897 2 16740_11.82_10.34.y+50kpc) s
+5 394 M
+(  0.4594640 -0.2913075  0.3196720 2 9024_11.78_10.31.x+50kpc) s
+5 386 M
+( -0.0006673 -0.1354265 -0.2012990 2 3307_11.89_10.43.x+50kpc) s
+5 378 M
+(  0.0752427  0.0229050  0.0084258 2 16739_12.19_10.86.x+50kpc) s
+5 370 M
+(  0.0725859  0.0248478  0.0140897 2 16740_11.82_10.34.x+50kpc) s
+5 362 M
+(##### End sample LOS file LOS.r48n384cwp.z0.25.zdir.MH120 #####) s
+5 346 M
+(Note, that the sight lines through the center, the .cen, should) s
+5 338 M
+(probably produce something akin to a DLA, especially since we turn on) s
+5 330 M
+(the NHLIMIT to make all neutral gas over a certain pressure range \(the) s
+5 322 M
+(Popping et al. 2009 constraint\).  Unfortunately, specexbin does not) s
+5 314 M
+(generate damping wings and would not produce an actual DLA.  ) s
+5 298 M
+([BDO- weird, the x-coordinate is changing when the y-coordinate should) s
+5 290 M
+(be changing \(the .x+50kpc versus the .cen files shows a change in the) s
+5 282 M
+(y-coordinate\).  This is a script issue that generates the LOS files) s
+5 274 M
+(and shouldn't affect the general approach we use here.]) s
+5 258 M
+(IMPORTANT NOTE: The original code from Uffe Hellsten/Romeel Dave would) s
+5 250 M
+(do only straight sight lines and wrap particles around the box edges) s
+5 242 M
+(in an ingenious way so that there were no loose ends \(all bins along) s
+5 234 M
+(the spectrum would find all the SPH particles that contributed to) s
+5 226 M
+(them\), but now the way the code works with variable bin sizes,) s
+5 218 M
+(densities, etc. along the sight line this would not be so easy, so) s
+5 210 M
+(when running a single sight line across the box there are some "loose) s
+5 202 M
+(ends" at the edges \(the ends of the specaim file, i.e. the code) s
+5 194 M
+(doesn't find the SPH particles across the box edge that contribute to) s
+5 186 M
+(the bin at the box edge and therefore the bin is incomplete\).  The way) s
+5 178 M
+(the code works is to shift the entire box to be centered on the line) s
+5 170 M
+(of sight coordinates, so the edge problems would occur at +/-0.5 from) s
+5 162 M
+(the pixel \(e.g. 0.0725859 0.0248478 -0.2012990 2) s
+5 154 M
+(16740_11.82_10.34.x+50kpc would have problems near z=-0.2012290-0.5 =) s
+5 146 M
+(-0.70 and z=-0.2012290+0.5=0.30 \(which box are at the) s
+5 138 M
+(z-coordinate~0.30 in tipsy units\)\).  The ideal solution would be to) s
+5 130 M
+(rewrite the code to check if an SPH particle contributes at both ends) s
+5 122 M
+(of a box \(which may take some work\), and another would be to ignore) s
+5 114 M
+(the extreme edges and trust only the bins in the central 0.75 of the) s
+5 106 M
+(box.  The choice of 0.75 may or may not be conservative, and depends) s
+5 98 M
+(on how peculiar velocities spread particles in velocity space relative) s
+5 90 M
+(to the length of the box.  For example, a 1000 km/s peculiar velocity) s
+5 82 M
+(would shift a particle about 1/5th of the way across a 48 Mpc/h box at) s
+5 74 M
+(z=0.0 \(which has a velocity width of 4800 km/s\) and this is quite a) s
+5 66 M
+(possible situation.  For the sight line example above, we are only) s
+5 58 M
+(interested in the area +/-1000 km/s around the redshift of the galaxy) s
+5 50 M
+(for this project, so less than half of the box length and this is) s
+5 42 M
+(okay.) s
+5 26 M
+(B. Continuous Angled Sightlines- specexbin_v9) s
+5 10 M
+(Here is an example of a script that will generate 70 sight lines) s
+5 2 M
+(between z=2->0 for the r48n384cwp file.  Note that the boxsize is 48) s
+377 490 M
+(Mpc/h and the flux_factor is 1.11.  The angles chosen are 10 to 80) s
+377 482 M
+(degrees, and sight lines will run nearly 80 boxlengths when generating) s
+377 474 M
+(one sightline \(i.e. it is like crossing the box 80 times, but of) s
+377 466 M
+(course at changing redshifts\).  ) s
+377 450 M
+(##### Example script file: r48n384cwp.sh #####) s
+377 442 M
+(set model=r48n384cwp) s
+377 426 M
+(set rlow=0.0) s
+377 418 M
+(set rhi=2.0) s
+377 402 M
+(set boxsize=48.0) s
+377 394 M
+(set flux_factor=1.11) s
+377 378 M
+(  set rlname = `echo $rlow | awk '{printf\("%.3d",$1*100\)}'`) s
+377 370 M
+(  set rhname = `echo $rhi | awk '{printf\("%.3d",$1*100\)}'`) s
+377 354 M
+(@ id = 10) s
+377 346 M
+( ) s
+377 338 M
+(while\($id<80\)) s
+377 330 M
+(    specexbin_v9 snap_${model} ${rlow} ${rhi} ${boxsize} ${flux_factor} ${id}) s
+377 322 M
+(    @ id ++) s
+377 314 M
+(end) s
+377 306 M
+(##### End Example script file #####) s
+377 290 M
+(It takes about an hour to run a single sight line, so what I often do) s
+377 282 M
+(is replace the 10 and 80 as input variables $1 and $2 so that you run) s
+377 274 M
+(the command line as follows:) s
+377 266 M
+(./r48n384cwp.sh 10 20) s
+377 250 M
+(which will generate 10 sight lines in about 10 hours for this case.) s
+377 242 M
+(As I run this on a multi-processor machine, I will start about 7 of) s
+377 234 M
+(these processes so that I generate a set of sight lines in about 12) s
+377 226 M
+(hours that comprise a total of about 70x80=5600 boxlengths.  ) s
+377 210 M
+(VII. OTHER INPUT PARAMETERS) s
+377 194 M
+(There are some input parameters that are located in the code in) s
+377 186 M
+(various locations, but may be need to be changed if changing) s
+377 178 M
+(resolution or cosmology.) s
+377 162 M
+(In specexbin_v9.c, the cosmological parameters are hardcoded in, which) s
+377 154 M
+(is not ideal:) s
+377 138 M
+(  totMass = 0.28;) s
+377 130 M
+(  Lambda = 0.72;) s
+377 122 M
+(  Omega_b = 0.046; ) s
+377 114 M
+(  H_0 = 70;) s
+377 98 M
+(These used to be command line inputs, but this was changed.  A better) s
+377 90 M
+(place to put them in is in defs.h.  ) s
+377 74 M
+(In defs.h, the resolution of binning in space \(ZRES\) and in velocity) s
+377 66 M
+(\(VRES\) is specified.  ) s
+377 50 M
+(#define ZRES            3.0e-06) s
+377 42 M
+(#define VRES            1.5e-05) s
+377 26 M
+(The ZRES has a resolution of 333,333 and is the dz of a bin size in) s
+377 18 M
+(the binzfiles, while the VRES is the resolution of the output spectau) s
+377 10 M
+(files \(66,667\), so a spectrum from z=2->0 has 133,333 rows.  This has) s
+377 2 M
+(not changed since the Uffe Hellsten version.  ) s
+_R
+S
+%%Page: (7) 7
+%%BeginPageSetup
+_S
+90 rotate
+24 -574 translate
+/pagenum 7 def
+/fname (README) def
+/fdir () def
+/ftail (README) def
+% User defined strings:
+/pagenumstr (7) def
+/moddatestr (11/25/10) def
+/modtimestr (03:08:32) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 482 M
+(VIII. CODE DETAILS) s
+5 466 M
+(specexbin_v9.c) s
+5 458 M
+(file_io.c) s
+5 450 M
+(getspecparticles.c) s
+5 442 M
+(initions.c) s
+5 434 M
+(contsmoothspec.c) s
+5 426 M
+(ionfrac.c) s
+5 418 M
+(tau.c) s
+5 410 M
+(outtau.c  ) s
+_R
+S
+%%Trailer
+%%Pages: 7
+%%DocumentNeededResources: font Times-Roman Courier-Bold Courier 
+%%+ font Times-Bold 
+%%EOF

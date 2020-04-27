@@ -1,0 +1,19 @@
+# This is based on Mark Fardal's run.pbs
+# This line to test whether symlink works
+
+#!/bin/csh -f
+#PBS -l nodes=1:ppn=16
+#PBS -q opteron
+#PBS -l walltime=72:00:00
+#PBS -N dospectra_short
+
+qalter -N `basename $PBS_O_WORKDIR` $PBS_JOBID
+
+pbsdsh -u /bin/hostname
+
+set flags='--bind-to-socket --report-bindings'
+set hangpreventflags='--mca btl_openib_flags 1 --mca mpool_rdma_rcache_size_limit 209715200'
+
+cd $PBS_O_WORKDIR
+bash dospectra.sh
+

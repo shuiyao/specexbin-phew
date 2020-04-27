@@ -1,0 +1,1487 @@
+File: ./contsmoothspec.bak.c
+================================
+
+File: ./contsmoothspec.c
+================================
+
+43d42
+< #define KPC 3.086e21
+66,68d64
+< #ifdef SINGLE_VOFFSET_PER_PARTICLE
+<   int bin_cen;
+< #endif
+102c98
+< #ifdef WIND_BY_WIND
+---
+> #ifdef PHEW
+106a103
+>   
+109d105
+<   float nc_this_bin;
+118,119c114,115
+<   double colcloud, rhocloud, tcloud, vcloud, Zcloud;
+<   double *voffset;
+---
+>   double colcloud, rhocloud, tcloud, vcloud;
+>   double voffset, vmin;
+183c179
+< #ifdef WIND_BY_WIND
+---
+> #ifdef PHEW
+190,234c186,188
+<   // WARNING: In the first loop, IonTotal.redshift has not been updated.
+< 
+<   // voffset[nzbins+nzloopbins] corresponds to the hubble_expansion in tau.c
+<   voffset = malloc((nzbins+nzloopbins) * sizeof(double));
+< #ifndef SHORTSPEC
+<   if(IonTotal.redshift[0] > 0)
+<     cosmopar(CosmicTime(IonTotal.redshift[0]));
+<   else
+<     cosmopar(CosmicTime(bin_redshift[0]));    
+< #endif
+<   if(IonTotal.redshift[0] > 0) // The first element
+<     voffset[0] = hubble*aex*unit_Velocity/1.e5*IonTotal.binsize[0];
+<   else
+<     voffset[0] = hubble*aex*unit_Velocity/1.e5*bin_size[0];    
+<   for(i = 1; i < nzloopbins; i ++){ // The old wraps
+< #ifndef SHORTSPEC
+<     cosmopar(CosmicTime(IonTotal.redshift[i]));
+< #endif
+<     voffset[i] = voffset[i-1] + hubble*aex*unit_Velocity/1.e5*IonTotal.binsize[i];
+<   }
+<   for(i = nzloopbins; i < nzloopbins + nzbins; i ++){ // The new wrap
+< #ifndef SHORTSPEC
+<     cosmopar(CosmicTime(bin_redshift[i-nzloopbins]));
+< #endif
+<     voffset[i] = voffset[i-1] + hubble*aex*unit_Velocity/1.e5*bin_size[i-nzloopbins];
+<     // SH: 161102 Nasty Bug!!
+<     // {bin_size, bin_redshift}[i-nzloopbins] instead of i
+< 
+<     /* if(voffset[i-1] < 1.e5 && voffset[i] > 1.e5) */
+<     /*   fprintf(stderr, "%d bin2=%d %g %g %g | %g %g\n", */
+<     /* 	      i, nzloopbins+nzbins, voffset[i-1], voffset[i], bin_size[i-nzloopbins], */
+<     /* 	      hubble, aex); */
+<   }
+<   if(IonTotal.redshift[0] > 0)
+<     redshift_track = IonTotal.redshift[0];
+<   else
+<     redshift_track = bin_redshift[0];
+<   fprintf(stderr, "--- redshift_track = %g %g %g, redshift = %g\n",
+< 	  redshift_track, bin_redshift[0], IonTotal.redshift[0], redshift);
+<   fprintf(stderr, "--- voffset[0] = %g; voffset[%d] = %g\n",
+< 	  voffset[0], i-1, voffset[i-1]);
+<   vbin_size = malloc((nvloopbins+nvbins)*sizeof(double));
+<   vbin_coord = malloc((nvloopbins+nvbins)*sizeof(double));
+<   /* vbin_size = malloc(sizeof(double)); */
+<   /* vbin_coord = malloc(sizeof(double)); */
+---
+>   redshift_track = IonTotal.redshift[0];
+>   vbin_size = malloc(sizeof(double));
+>   vbin_coord = malloc(sizeof(double));
+239,240c193
+<   /* while(redshift_track >= bin_redshift[nzbins-1]){ */
+<   while(bin < nvloopbins + nvbins){    
+---
+>   while(redshift_track >= bin_redshift[nzbins-1]){
+250,251c203,204
+<     /* vbin_size = realloc(vbin_size, bin*sizeof(double)); */
+<     /* vbin_coord = realloc(vbin_coord, bin*sizeof(double)); */
+---
+>     vbin_size = realloc(vbin_size, bin*sizeof(double));
+>     vbin_coord = realloc(vbin_coord, bin*sizeof(double));
+258,261c211
+<     fprintf(stderr, "Warning: bin(%d) != nvloopbins(%d) + nvbins(%d)\n",
+< 	    bin, nvloopbins, nvbins);
+<   else
+<     fprintf(stderr, "Good: bin(%d) == nvloopbins(%d) + nvbins(%d)\n",
+---
+>     fprintf(stderr, "Error: bin(%d) != nvloopbins(%d) + nvbins(%d)\n",
+263,264d212
+<   // In the LONGSPEC case, it's not necessarily true.
+<   // In fact, bin ~ nvloopbins + nvbins + i(number of wraps)
+266c214
+< #endif // WIND_BY_WIND
+---
+> #endif // PHEW
+290a239
+>   
+361c310
+< 	  // SH161007: WIND_BY_WIND?
+---
+> 	  // SH161007: PHEW?
+391,393d339
+< #ifdef SINGLE_VOFFSET_PER_PARTICLE	  
+< 	  bin_cen = binarysearch((zcoord - zbeginline),bin_coord,nzbins);
+< #endif	  
+394a341
+> 	  //fprintf(stdout,"BIN: irep= % 5.3f zcoord= %7.5f zhsmooth= %7.5f zbeginline= %7.5f bin_coord[0]= %5.3e bin_min= %5d bin_max= %5d nzbins= %5d %5d ratio= %5.3e\n",irep[2],zcoord, zo*cp->hsmooth, zbeginline,bin_coord[0],bin_min,bin_max,bin_max-bin_min,nzbins,(bin_max-bin_min)/(zo*cp->hsmooth));
+488a436,444
+> #ifdef PHEW
+> 	    if(bin >= nzbins)
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[nzbins-1];
+> 	    else if(bin < bin_min) 
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[0];
+> 	    else
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[bin];
+> #endif	    
+> 		  
+651,652c607,608
+< #ifdef WIND_BY_WIND
+< 	      if(cp -> delaytime <= -1.e30){ /* Not a PhEW wind */
+---
+> #ifdef PHEW
+> 	      if(cp -> wind_flag <= 0){ /* Not a PhEW wind */
+690c646
+< 		  if(Ion[k].Zcolumn==-1){ // HI or HeII, k = 0, 1
+---
+> 		  if(Ion[k].Zcolumn==-1){
+729,760c685,713
+< #ifdef WIND_BY_WIND
+< 	      } // UP: delaytime <= 0
+< 	      else{ // IS a wind particle !
+< 		// **************** Construction Begin ... ****************
+< 		// hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
+< 		for(ionid = -1; ionid < nions; ionid ++){
+< 		  if(ionid == -1){
+< 		    I = IonTotal;
+< 		    I.atomwt = Ion[0].atomwt; 
+< 		    I.fraction = 0.0122; 
+< 		    I.Zcolumn = -1; 
+< 		    I.alpha = 0;
+< 		    I.bsys = 1e-10;
+< 		    I.Xsec = Ion[0].Xsec;
+< 		    /* bin_cen = binarysearch(vcloud-vmin,vbin_coord,nvbinsnew); */
+< 		    /* bin_cen = binarysearch(vcloud-vmin+vbin_size[bin_cen]/2,vbin_coord,nvbinsnew); */
+< 		    /* if (bin_cen < 0 || bin_cen >= nvbinsnew) continue; // Moving on to the new ion. */
+< 		  }
+< 		  else{
+< 		    I = Ion[ionid];
+< 		  }
+< 		  // colcloud: Average column density of a single cloudlet
+< 		  Zcol = I.Zcolumn;
+< 		  if(Zcol==-1){
+< 		    if(ionid >= 0) ion_weight = ionfrac[ionid]; // HI, HeII. 
+< 		    else ion_weight = 1.0; // IonTotal
+< 		  }else{
+< 		    if(Zcol<-1){
+< 		      ion_weight = ionfrac[ionid]*cp->metals[1]/0.009618*I.fraction*pow(10,I.alpha);
+< 		      // Not C, O, Si, Fe
+< 		    }else{
+< 		      ion_weight = ionfrac[ionid]*cp->metals[Zcol];
+---
+> #ifdef PHEW
+> 	      } // wind_flag <= 0
+> 	      else{ // IS a PhEW wind !
+> 		nc_bin = kernel * cp->ncloud * (PI * cp->rcloud * cp->rcloud); // kernel has been normalized by PI * h^2
+> 		/* prob0 = exp(-nc_bin); // k=0 term of the Poisson distribution		       */
+> 		prob1 = nc_bin * exp(-nc_bin); // k=1 term of the Poisson distribution
+> 		/* prob2 = nc_bin * nc_bin * exp(-nc_bin) / 2.0; // k=1 term of the Poisson distribution		       */
+> 		// Write prob0, prob1, prob2 to the partzfile ...
+> 		if(get_random_number(cp->idx + 12) < prob1){
+> 		  // I want to find out which zbins this particle really belongs to here, after vel shift
+> 		  // I will still use *_interp variables, though they mean different!
+> 
+> 		  // **************** Construction Begin ... ****************
+> 		  vmin = voffset = 0.0;
+> 
+> 		  // hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
+> 
+> 		  for(ionid = -1; ionid < nions; ionid ++){
+> 		    if(ionid == -1){
+> 		      I = IonTotal;
+> 		      I.atomwt = Ion[0].atomwt; 
+> 		      I.fraction = 0.0122; 
+> 		      I.Zcolumn = -1; 
+> 		      I.alpha = 0;
+> 		      I.bsys = 1e-10;
+> 		      I.Xsec = Ion[0].Xsec;
+> 		      /* bin_cen = binarysearch(vcloud-vmin,vbin_coord,nvbinsnew); */
+> 		      /* bin_cen = binarysearch(vcloud-vmin+vbin_size[bin_cen]/2,vbin_coord,nvbinsnew); */
+> 		      /* if (bin_cen < 0 || bin_cen >= nvbinsnew) continue; // Moving on to the new ion. */
+762,776c715,716
+< 		  } // IF: Zcol ==/</> -1
+< 		    // note ionfrac[k] is calculated independently for each cp
+< 
+< 		  colcloud = kernel * ion_weight * cp->mass;
+< 		  rhocloud = colcloud * cp->rho * XH * unit_Density / (aex * aex * aex);
+< 		  tcloud = colcloud * cp->temp;
+< 		  Zcloud = 0.0;
+< 		  if(Zcol==-1){ // H or He or IonTotal
+< 		    for(m=0;m<NMETALS;m++) Zcloud += colcloud * (cp->metals[m]); // ion_weight already included
+< 		    Zcloud *= 1.28;
+< 		  } 
+< 		  else{
+< 		    if(Zcol<-1){
+< 		      Zcloud = colcloud * (cp->metals[1]);
+< 		      Zcloud *= I.fraction/0.009618*pow(10,I.alpha); /* 2-11-10 */
+---
+> 		    else{
+> 		      I = Ion[ionid];
+778,784c718,733
+< 		    else
+< 		      Zcloud = colcloud * (cp->metals[Zcol]);
+< 		  }
+< 
+< 		  vcloud = vz * unit_vel; // No colcloud because we do not average here
+< 		  vcloud += vkernel / kernel * hubble * unit_vel;
+< 		  // colcloud is equivalent to cp->mass * kernel * ion_weight
+---
+> 		    for( i=0; i<nvbinsnew; i++ ){
+> 		      I.vcbins[i] = I.tcbins[i] = I.rhocbins[i] = 0.0;
+> 		    }
+> 		    // colcloud: Average column density of a single cloudlet
+> 		    Zcol = I.Zcolumn;
+> 		    if(Zcol==-1){
+> 		      ion_weight = ionfrac[ionid]; // IonTotal
+> 		    }else{
+> 		      if(Zcol<-1){
+> 			ion_weight = ionfrac[ionid]*cp->metals[1]/0.009618*I.fraction*pow(10,I.alpha);
+> 			// Not C, O, Si, Fe
+> 		      }else{
+> 			ion_weight = ionfrac[ionid]*cp->metals[Zcol];
+> 		      }
+> 		    } // IF: Zcol ==/</> -1
+> 		    // note ionfrac[k] is calculated independently for each cp
+786,794c735,742
+< #ifndef SINGLE_VOFFSET_PER_PARTICLE
+< 		  vcloud += voffset[bin+nzloopbins];
+< #else
+< 		  vcloud += voffset[bin_cen+nzloopbins];
+< 		  /* SH161220: It's a simple way of adding up col densities. */
+< 		  /* Here each SPH particle is projected to a single redshift bin (bin_cen) instead of a number of bins ranging from bin_min to bin_max. The column densities are therefore integrated along from bin_min to bin_max but the integrated N is put into the single bin_cen, before converting it to velocity space. */
+< #endif		  
+< 		  // voffset determines the cloud in velocity space
+< 		  // in tau.c, it is hubble_expansion
+---
+> 		    colcloud = cp->rho * 4. / 3. * cp->rcloud * ion_weight;
+> 		    rhocloud = colcloud * cp->rho * XH * unit_Density / (aex * aex * aex);
+> 		    tcloud = colcloud * cp->temp;
+> 
+> 		    vcloud = colcloud * vz * unit_vel;
+> 		    vcloud = colcloud / kernel * vkernel * hubble * unit_vel;
+> 		    // colcloud is equivalent to cp->mass * kernel * ion_weight
+> 		    vcloud += hubble_expansion + voffset;
+797,798c745,746
+< 		  b = 0.1; //Negligable temperature braodening in 0-velocity case.
+< 		  vcloud = 0.0;  //no velocity case!
+---
+> 		    b = 0.1; //Negligable temperature braodening in 0-velocity case.
+> 		    vcloud = 0.0;  //no velocity case!
+800c748
+< 		  b = I.bsys*sqrt(cp->temp) ;
+---
+> 		    b = I.bsys*sqrt(tcloud) ;
+802c750
+< 		  irepz = 0;
+---
+> 		    irepz = 0;
+804c752
+< 		  for(irepz = -1; irepz <= 1; irepz++) {
+---
+> 		    for(irepz = -1; irepz <= 1; irepz++) {
+806,808c754,755
+< 		    vbin_min = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew - NBSMOOTH*b),vbin_coord,nvbinsnew);
+< 		    vbin_max = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew + NBSMOOTH*b),vbin_coord,nvbinsnew);
+< 		    // Debug Note: vbin_max = 0 near the end of the spectra
+---
+> 		      vbin_min = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew - NBSMOOTH*b - vmin),vbin_coord,nvbinsnew);
+> 		      vbin_max = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew + NBSMOOTH*b - vmin),vbin_coord,nvbinsnew);
+810,818c757,758
+< 		    if (vbin_min < 0) vbin_min = 0;
+< 		    if (vbin_max >= nvbinsnew-1) vbin_max = nvbinsnew-2; // HAS TO BE ENSURED
+< #ifdef SHORTSPEC
+< 		    if((vbin_min == 0 && vbin_max == 0) || (vbin_min >= nvbinsnew-1 && vbin_max >= nvbinsnew-1)){
+< 		      continue; // Without SHORTSPEC, it points to irepz
+< 		    }
+< #endif		    
+< 		    for(vbin = vbin_min; vbin <= vbin_max; vbin++){ // Should we use another variable instead of "bin"
+< 		      // Integration over fac * Rc. The average should be fac = 4/3
+---
+> 		      if (vbin_min < 0) vbin_min = 0;
+> 		      if (vbin_max >= nvbinsnew) vbin_max = nvbinsnew-1;
+820,825c760,770
+< 		      vlower = vbin_coord[vbin] - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+< 		      vupper = vbin_coord[vbin+1] - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+< 		      vlower /= b ;
+< 		      vupper /= b ;
+< 		      abs_vlower = fabs(vlower) ;
+< 		      abs_vupper = fabs(vupper) ;
+---
+> 		      if((vbin_min == 0 && vbin_max == 0) || (vbin_min >= nvbinsnew-1 && vbin_max >= nvbinsnew-1)) continue;
+> 		      for(vbin = vbin_min; vbin <= vbin_max; vbin++){ // Should we use another variable instead of "bin"
+> 			// It seems that vmin == 0 always here
+> 			// Integration over fac * Rc. The average should be fac = 4/3
+> 
+> 			vlower = vbin_coord[bin] + vmin - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+> 			vupper = vbin_coord[bin+1] + vmin - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+> 			vlower /= b ;
+> 			vupper /= b ;
+> 			abs_vlower = fabs(vlower) ;
+> 			abs_vupper = fabs(vupper) ;
+827,832c772,773
+< 		      if(vupper*vlower < 0){
+< 			dvcol = 0.5*(erf(abs_vlower) + erf(vupper)) ;
+< 		      }
+< 		      else{
+< 			if(abs_vlower < abs_vupper){
+< 			  dvcol = 0.5*(erf(abs_vupper) - erf(abs_vlower)) ;
+---
+> 			if(vupper*vlower < 0){
+> 			  dvcol = 0.5*(erf(abs_vlower) + erf(vupper)) ;
+835,846c776,781
+< 			  dvcol = 0.5*(erf(abs_vlower) - erf(abs_vupper)) ;
+< 			}
+< 		      }
+< 		      if(colcloud > 0){
+< 			I.vcbins[vbin] += dvcol*colcloud; // The I.fraction is moved to tau.c
+< 
+< 			if(I.vcbins[vbin] < 0.0 && ionid == 0){
+< 			  fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g %g %g %g\n",
+< 				  I.vcbins[vbin], vbin,
+< 				  vcloud, voffset[bin+nzloopbins], colcloud, dvcol,
+< 				  vbin_min, vbin_max, vbin_coord[vbin], vbin_coord[vbin+1],
+< 				  vlower, vupper);
+---
+> 			  if(abs_vlower < abs_vupper){
+> 			    dvcol = 0.5*(erf(abs_vupper) - erf(abs_vlower)) ;
+> 			  }
+> 			  else{
+> 			    dvcol = 0.5*(erf(abs_vlower) - erf(abs_vupper)) ;
+> 			  }
+848,858c783,791
+< 
+< 			// ionfrac (but not necessarily atomic fraction) is already in the colcloud
+< 			I.rhocbins[vbin] += dvcol*rhocloud;
+< 			I.tcbins[vbin] += dvcol*tcloud;
+< 			I.Zcbins[vbin] += dvcol*Zcloud;			
+< 			// norm[bin] = I.vcbins[bin]
+< 			// These bins are in v-space
+< 			/* fprintf(stderr, "I[%d]: %d %g %g %g %g %g %g\n", */
+< 			/* 	  ionid, vbin, I.vcbins[vbin], I.tcbins[vbin], I.rhocbins[vbin], dvcol, vlower, vupper); */
+< 		      } // colcloud > 0
+< 		    } // bin_min < bin < bin_max
+---
+> 			if(colcloud > 0){
+> 			  I.vcbins[vbin] += dvcol*colcloud;
+> 			  // ionfrac is already in the colcloud
+> 			  I.rhocbins[vbin] += dvcol*rhocloud;
+> 			  I.tcbins[vbin] += dvcol*tcloud;
+> 			  // norm[bin] = I.vcbins[bin]
+> 			  // These bins are in v-space
+> 			} // colcloud > 0	    
+> 		      } // bin_min < bin < bin_max
+860c793
+< 		  } // irepz
+---
+> 		    } // irepz
+862,867c795,800
+< 		  if(ionid==-1){
+< 		    IonTotal = I;
+< 		  }else{
+< 		    Ion[ionid] = I;
+< 		  }
+< 		} // Loop: -1 < ionid < nions
+---
+> 		    if(ionid==-1){
+> 		      IonTotal = I;
+> 		    }else{
+> 		      Ion[ionid] = I;
+> 		    }
+> 		  } // Loop: -1 < ionid < nions
+870,871c803,805
+< 	      } // A Wind Particle
+< #endif	// WIND_BY_WIND	    
+---
+> 		} // The bin contains ONE cloud
+> 	      } // PhEW Wind
+> #endif	// PHEW	    
+962a897,927
+> #ifdef PHEW
+>     redshift_track = IonTotal.redshift[0];
+>     for(i = 0; i < nvbinsnew; i++) {
+>       redshift_track -= vres;
+> #ifndef SHORTSPEC
+>       cosmopar(CosmicTime(redshift_track));
+> #endif      
+>       if(IonTotal.vcbins[i] > 0){
+> 	IonTotal.tcbins[i] /= IonTotal.vcbins[i];
+> 	IonTotal.rhocbins[i] /= IonTotal.vcbins[i];
+>       }
+>       unit_col = Ion[0].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+>       // Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+>       // Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+>       IonTotal.vcbins[i] *= unit_col;
+>       IonTotal.vcbins[i] *= unit_Mass/Ion[0].atomwt;
+>       
+>       for(k = 0; k < nions; k++){
+> 	if(Ion[k].vcbins[i] > 0){
+> 	  Ion[k].tcbins[i] /= Ion[k].vcbins[i];
+> 	  Ion[k].rhocbins[i] /= Ion[k].vcbins[i];
+> 	}
+> 	unit_col = Ion[k].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+> 	// Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+> 	// Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+> 	Ion[k].vcbins[i] *= unit_col;
+> 	Ion[k].vcbins[i] *= unit_Mass/Ion[k].atomwt;
+>       }
+>     }  
+> #endif  // PHEW
+> 
+970,977c935,939
+< #ifndef SHORTSPEC
+<     free(bin_size);
+<     fprintf(stderr, "bin_size freed\n");        // To detect memory overflow
+<     free(bin_coord);
+<     fprintf(stderr, "bin_coord freed\n");            
+<     free(bin_redshift);
+<     fprintf(stderr, "bin_redshift freed\n");            
+<     free(spec_particles);
+---
+>     //free(bin_size);
+>     //free(bin_coord);
+>     //free(bin_redshift);
+> #ifndef SHORTSPEC	
+>     free(spec_particles); 
+980,984d941
+< #ifdef WIND_BY_WIND    
+<     free(voffset);
+<     free(vbin_coord);
+<     free(vbin_size);
+< #endif    
+987c944
+< }
+---
+>   }
+File: ./contsmoothspec.c~
+================================
+
+43d42
+< #define KPC 3.086e21
+99,104c98
+< #ifdef WIND_BY_WIND
+<   int nvbinsnew;
+<   int ionid;
+<   int irepz;
+<   int vbin, vbin_min, vbin_max;
+<   
+---
+> #ifdef PHEW
+107d100
+<   float nc_this_bin;
+110c103
+<   double vcoord, vstep;
+---
+>   double vccord, vstep, zccord;
+112,113d104
+<   float vlower,vupper;
+<   float abs_vlower,abs_vupper;
+115,118c106
+<   float b;
+<   double colcloud, rhocloud, tcloud, vcloud, Zcloud;
+<   double *voffset;
+<   ionStruct I;
+---
+>   double voffset, vmin;
+181c169
+< #ifdef WIND_BY_WIND
+---
+> #ifdef PHEW
+188,232c176,178
+<   // WARNING: In the first loop, IonTotal.redshift has not been updated.
+< 
+<   // voffset[nzbins+nzloopbins] corresponds to the hubble_expansion in tau.c
+<   voffset = malloc((nzbins+nzloopbins) * sizeof(double));
+< #ifndef SHORTSPEC
+<   if(IonTotal.redshift[0] > 0)
+<     cosmopar(CosmicTime(IonTotal.redshift[0]));
+<   else
+<     cosmopar(CosmicTime(bin_redshift[0]));    
+< #endif
+<   if(IonTotal.redshift[0] > 0) // The first element
+<     voffset[0] = hubble*aex*unit_Velocity/1.e5*IonTotal.binsize[0];
+<   else
+<     voffset[0] = hubble*aex*unit_Velocity/1.e5*bin_size[0];    
+<   for(i = 1; i < nzloopbins; i ++){ // The old wraps
+< #ifndef SHORTSPEC
+<     cosmopar(CosmicTime(IonTotal.redshift[i]));
+< #endif
+<     voffset[i] = voffset[i-1] + hubble*aex*unit_Velocity/1.e5*IonTotal.binsize[i];
+<   }
+<   for(i = nzloopbins; i < nzloopbins + nzbins; i ++){ // The new wrap
+< #ifndef SHORTSPEC
+<     cosmopar(CosmicTime(bin_redshift[i-nzloopbins]));
+< #endif
+<     voffset[i] = voffset[i-1] + hubble*aex*unit_Velocity/1.e5*bin_size[i-nzloopbins];
+<     // SH: 161102 Nasty Bug!!
+<     // {bin_size, bin_redshift}[i-nzloopbins] instead of i
+< 
+<     /* if(voffset[i-1] < 1.e5 && voffset[i] > 1.e5) */
+<     /*   fprintf(stderr, "%d bin2=%d %g %g %g | %g %g\n", */
+<     /* 	      i, nzloopbins+nzbins, voffset[i-1], voffset[i], bin_size[i-nzloopbins], */
+<     /* 	      hubble, aex); */
+<   }
+<   if(IonTotal.redshift[0] > 0)
+<     redshift_track = IonTotal.redshift[0];
+<   else
+<     redshift_track = bin_redshift[0];
+<   fprintf(stderr, "--- redshift_track = %g %g %g, redshift = %g\n",
+< 	  redshift_track, bin_redshift[0], IonTotal.redshift[0], redshift);
+<   fprintf(stderr, "--- voffset[0] = %g; voffset[%d] = %g\n",
+< 	  voffset[0], i-1, voffset[i-1]);
+<   vbin_size = malloc((nvloopbins+nvbins)*sizeof(double));
+<   vbin_coord = malloc((nvloopbins+nvbins)*sizeof(double));
+<   /* vbin_size = malloc(sizeof(double)); */
+<   /* vbin_coord = malloc(sizeof(double)); */
+---
+>   redshift_track = IonTotal.redshift[0];
+>   vbin_size = malloc(sizeof(double));
+>   vbin_coord = malloc(sizeof(double));
+237,238c183
+<   /* while(redshift_track >= bin_redshift[nzbins-1]){ */
+<   while(bin < nvloopbins + nvbins){    
+---
+>   while(redshift_track >= bin_redshift[nzbins-1]){
+248,249c193,194
+<     /* vbin_size = realloc(vbin_size, bin*sizeof(double)); */
+<     /* vbin_coord = realloc(vbin_coord, bin*sizeof(double)); */
+---
+>     vbin_size = realloc(vbin_size, bin*sizeof(double));
+>     vbin_coord = realloc(vbin_coord, bin*sizeof(double));
+255,262c200,202
+<   if(bin != nvloopbins + nvbins)
+<     fprintf(stderr, "Warning: bin(%d) != nvloopbins(%d) + nvbins(%d)\n",
+< 	    bin, nvloopbins, nvbins);
+<   else
+<     fprintf(stderr, "Good: bin(%d) == nvloopbins(%d) + nvbins(%d)\n",
+< 	    bin, nvloopbins, nvbins);
+<   // In the LONGSPEC case, it's not necessarily true.
+<   // In fact, bin ~ nvloopbins + nvbins + i(number of wraps)
+---
+>   if(bin_i != nvloopbins + nvbins)
+>     fprintf(stderr, "Error: bin_i(%d) != nvloopbins(%d) + nvbins(%d)\n",
+> 	    bin_i, nvloopbins, nvbins);
+264c204
+< #endif // WIND_BY_WIND
+---
+> #endif // PHEW
+288a229
+>   
+359c300
+< 	  // SH161007: WIND_BY_WIND?
+---
+> 	  // SH161007: PHEW?
+389a331
+> 	  //fprintf(stdout,"BIN: irep= % 5.3f zcoord= %7.5f zhsmooth= %7.5f zbeginline= %7.5f bin_coord[0]= %5.3e bin_min= %5d bin_max= %5d nzbins= %5d %5d ratio= %5.3e\n",irep[2],zcoord, zo*cp->hsmooth, zbeginline,bin_coord[0],bin_min,bin_max,bin_max-bin_min,nzbins,(bin_max-bin_min)/(zo*cp->hsmooth));
+483a426,434
+> #ifdef PHEW
+> 	    if(bin >= nzbins)
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[nzbins-1];
+> 	    else if(bin < bin_min) 
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[0];
+> 	    else
+> 	      hubble_expansion = hubble*aex*unit_Velocity/1.e5*bin_size[bin];
+> #endif	    
+> 		  
+646,647c597,598
+< #ifdef WIND_BY_WIND
+< 	      if(cp -> delaytime <= -1.e30){ /* Not a PhEW wind */
+---
+> #ifdef PHEW
+> 	      if(cp -> wind_flag <= 0){ /* Not a PhEW wind */
+685c636
+< 		  if(Ion[k].Zcolumn==-1){ // HI or HeII, k = 0, 1
+---
+> 		  if(Ion[k].Zcolumn==-1){
+724,755c675,703
+< #ifdef WIND_BY_WIND
+< 	      } // UP: delaytime <= 0
+< 	      else{ // IS a wind particle !
+< 		// **************** Construction Begin ... ****************
+< 		// hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
+< 		for(ionid = -1; ionid < nions; ionid ++){
+< 		  if(ionid == -1){
+< 		    I = IonTotal;
+< 		    I.atomwt = Ion[0].atomwt; 
+< 		    I.fraction = 0.0122; 
+< 		    I.Zcolumn = -1; 
+< 		    I.alpha = 0;
+< 		    I.bsys = 1e-10;
+< 		    I.Xsec = Ion[0].Xsec;
+< 		    /* bin_cen = binarysearch(vcloud-vmin,vbin_coord,nvbinsnew); */
+< 		    /* bin_cen = binarysearch(vcloud-vmin+vbin_size[bin_cen]/2,vbin_coord,nvbinsnew); */
+< 		    /* if (bin_cen < 0 || bin_cen >= nvbinsnew) continue; // Moving on to the new ion. */
+< 		  }
+< 		  else{
+< 		    I = Ion[ionid];
+< 		  }
+< 		  // colcloud: Average column density of a single cloudlet
+< 		  Zcol = I.Zcolumn;
+< 		  if(Zcol==-1){
+< 		    if(ionid >= 0) ion_weight = ionfrac[ionid]; // HI, HeII. 
+< 		    else ion_weight = 1.0; // IonTotal
+< 		  }else{
+< 		    if(Zcol<-1){
+< 		      ion_weight = ionfrac[ionid]*cp->metals[1]/0.009618*I.fraction*pow(10,I.alpha);
+< 		      // Not C, O, Si, Fe
+< 		    }else{
+< 		      ion_weight = ionfrac[ionid]*cp->metals[Zcol];
+---
+> #ifdef PHEW
+> 	      } // wind_flag <= 0
+> 	      else{ // IS a PhEW wind !
+> 		nc_bin = kernel * cp->ncloud * (PI * cp->rcloud * cp->rcloud); // kernel has been normalized by PI * h^2
+> 		/* prob0 = exp(-nc_bin); // k=0 term of the Poisson distribution		       */
+> 		prob1 = nc_bin * exp(-nc_bin); // k=1 term of the Poisson distribution
+> 		/* prob2 = nc_bin * nc_bin * exp(-nc_bin) / 2.0; // k=1 term of the Poisson distribution		       */
+> 		// Write prob0, prob1, prob2 to the partzfile ...
+> 		if(get_random_number(cp->idx + 12) < prob1){
+> 		  // I want to find out which zbins this particle really belongs to here, after vel shift
+> 		  // I will still use *_interp variables, though they mean different!
+> 
+> 		  // **************** Construction Begin ... ****************
+> 		  vmin = voffset = 0.0;
+> 
+> 		  // hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
+> 
+> 		  for(ionid = -1; ionid < nions; ionid ++){
+> 		    if(ionid == -1){
+> 		      I = IonTotal;
+> 		      I.atomwt = Ion[0].atomwt; 
+> 		      I.fraction = 0.0122; 
+> 		      I.Zcolumn = -1; 
+> 		      I.alpha = 0;
+> 		      I.bsys = 1e-10;
+> 		      I.Xsec = Ion[0].Xsec;
+> 		      /* bin_cen = binarysearch(vcloud-vmin,vbin_coord,nvbinsnew); */
+> 		      /* bin_cen = binarysearch(vcloud-vmin+vbin_size[bin_cen]/2,vbin_coord,nvbinsnew); */
+> 		      /* if (bin_cen < 0 || bin_cen >= nvbinsnew) continue; // Moving on to the new ion. */
+757,771c705,706
+< 		  } // IF: Zcol ==/</> -1
+< 		    // note ionfrac[k] is calculated independently for each cp
+< 
+< 		  colcloud = kernel * ion_weight * cp->mass;
+< 		  rhocloud = colcloud * cp->rho * XH * unit_Density / (aex * aex * aex);
+< 		  tcloud = colcloud * cp->temp;
+< 		  Zcloud = 0.0;
+< 		  if(Zcol==-1){ // H or He or IonTotal
+< 		    for(m=0;m<NMETALS;m++) Zcloud += colcloud * (cp->metals[m]); // ion_weight already included
+< 		    Zcloud *= 1.28;
+< 		  } 
+< 		  else{
+< 		    if(Zcol<-1){
+< 		      Zcloud = colcloud * (cp->metals[1]);
+< 		      Zcloud *= I.fraction/0.009618*pow(10,I.alpha); /* 2-11-10 */
+---
+> 		    else{
+> 		      I = Ion[ionid];
+773,775c708,723
+< 		    else
+< 		      Zcloud = colcloud * (cp->metals[Zcol]);
+< 		  }
+---
+> 		    for( i=0; i<nvbinsnew; i++ ){
+> 		      I.vcbins[i] = I.tcbins[i] = I.rhocbins[i] = 0.0;
+> 		    }
+> 		    // colcloud: Average column density of a single cloudlet
+> 		    Zcol = I.Zcolumn;
+> 		    if(Zcol==-1){
+> 		      ion_weight = ionfrac[ionid]; // IonTotal
+> 		    }else{
+> 		      if(Zcol<-1){
+> 			ion_weight = ionfrac[ionid]*cp->metals[1]/0.009618*I.fraction*pow(10,I.alpha);
+> 			// Not C, O, Si, Fe
+> 		      }else{
+> 			ion_weight = ionfrac[ionid]*cp->metals[I.Zcol];
+> 		      }
+> 		    } // IF: Zcol ==/</> -1
+> 		    // note ionfrac[k] is calculated independently for each cp
+777,782c725,732
+< 		  vcloud = vz * unit_vel; // No colcloud because we do not average here
+< 		  vcloud += vkernel / kernel * hubble * unit_vel;
+< 		  // colcloud is equivalent to cp->mass * kernel * ion_weight
+< 		  vcloud += voffset[bin+nzloopbins];
+< 		  // voffset determines the cloud in velocity space
+< 		  // in tau.c, it is hubble_expansion
+---
+> 		    colcloud = cp->rho * 4. / 3. * cp->rcloud * ion_weight;
+> 		    rhocloud = colcloud * cp->rho * XH * unit_Density / (aex * aex * aex);
+> 		    tcloud = colcloud * cp->temp;
+> 
+> 		    vcloud = colcloud * vz * unit_vel;
+> 		    vcloud = colcloud / kernel * vkernel * hubble * unit_vel;
+> 		    // colcloud is equivalent to cp->mass * kernel * ion_weight
+> 		    vcloud += hubble_expansion + voffset;
+785,786c735,736
+< 		  b = 0.1; //Negligable temperature braodening in 0-velocity case.
+< 		  vcloud = 0.0;  //no velocity case!
+---
+> 		    b = 0.1; //Negligable temperature braodening in 0-velocity case.
+> 		    vcloud = 0.0;  //no velocity case!
+788c738
+< 		  b = I.bsys*sqrt(cp->temp) ;
+---
+> 		    b = I.bsys*sqrt(tcloud) ;
+790c740
+< 		  irepz = 0;
+---
+> 
+792c742
+< 		  for(irepz = -1; irepz <= 1; irepz++) {
+---
+> 		    for(irepz = -1; irepz <= 1; irepz++) {
+794,796c744,745
+< 		    vbin_min = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew - NBSMOOTH*b),vbin_coord,nvbinsnew);
+< 		    vbin_max = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew + NBSMOOTH*b),vbin_coord,nvbinsnew);
+< 		    // Debug Note: vbin_max = 0 near the end of the spectra
+---
+> 		      vbin_min = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew - NBSMOOTH*b - vmin),vbin_coord,nvbinsnew);
+> 		      vbin_max = binarysearch((vcloud + irepz*vstep/1.e5*nvbinsnew + NBSMOOTH*b - vmin),vbin_coord,nvbinsnew);
+798,806c747,748
+< 		    if (vbin_min < 0) vbin_min = 0;
+< 		    if (vbin_max >= nvbinsnew-1) vbin_max = nvbinsnew-2; // HAS TO BE ENSURED
+< #ifdef SHORTSPEC
+< 		    if((vbin_min == 0 && vbin_max == 0) || (vbin_min >= nvbinsnew-1 && vbin_max >= nvbinsnew-1)){
+< 		      continue; // Without SHORTSPEC, it points to irepz
+< 		    }
+< #endif		    
+< 		    for(vbin = vbin_min; vbin <= vbin_max; vbin++){ // Should we use another variable instead of "bin"
+< 		      // Integration over fac * Rc. The average should be fac = 4/3
+---
+> 		      if (vbin_min < 0) vbin_min = 0;
+> 		      if (vbin_max >= nvbinsnew) vbin_max = nvbinsnew-1;
+808,813c750,760
+< 		      vlower = vbin_coord[vbin] - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+< 		      vupper = vbin_coord[vbin+1] - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+< 		      vlower /= b ;
+< 		      vupper /= b ;
+< 		      abs_vlower = fabs(vlower) ;
+< 		      abs_vupper = fabs(vupper) ;
+---
+> 		      if((vbin_min == 0 && vbin_max == 0) || (vbin_min >= nvbinsnew-1 && vbin_max >= nvbinsnew-1)) continue;
+> 		      for(vbin = vbin_min; vbin <= vbin_max; vbin++){ // Should we use another variable instead of "bin"
+> 			// It seems that vmin == 0 always here
+> 			// Integration over fac * Rc. The average should be fac = 4/3
+> 
+> 			vlower = vbin_coord[bin] + vmin - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+> 			vupper = vbin_coord[bin+1] + vmin - vcloud - irepz*vstep/1.e5*nvbinsnew ;
+> 			vlower /= b ;
+> 			vupper /= b ;
+> 			abs_vlower = fabs(vlower) ;
+> 			abs_vupper = fabs(vupper) ;
+815,820c762,763
+< 		      if(vupper*vlower < 0){
+< 			dvcol = 0.5*(erf(abs_vlower) + erf(vupper)) ;
+< 		      }
+< 		      else{
+< 			if(abs_vlower < abs_vupper){
+< 			  dvcol = 0.5*(erf(abs_vupper) - erf(abs_vlower)) ;
+---
+> 			if(vupper*vlower < 0){
+> 			  dvcol = 0.5*(erf(abs_vlower) + erf(vupper)) ;
+823,834c766,771
+< 			  dvcol = 0.5*(erf(abs_vlower) - erf(abs_vupper)) ;
+< 			}
+< 		      }
+< 		      if(colcloud > 0){
+< 			I.vcbins[vbin] += dvcol*colcloud; // The I.fraction is moved to tau.c
+< 
+< 			if(I.vcbins[vbin] < 0.0 && ionid == 0){
+< 			  fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g %g %g %g\n",
+< 				  I.vcbins[vbin], vbin,
+< 				  vcloud, voffset[bin+nzloopbins], colcloud, dvcol,
+< 				  vbin_min, vbin_max, vbin_coord[vbin], vbin_coord[vbin+1],
+< 				  vlower, vupper);
+---
+> 			  if(abs_vlower < abs_vupper){
+> 			    dvcol = 0.5*(erf(abs_vupper) - erf(abs_vlower)) ;
+> 			  }
+> 			  else{
+> 			    dvcol = 0.5*(erf(abs_vlower) - erf(abs_vupper)) ;
+> 			  }
+836,846c773,781
+< 
+< 			// ionfrac (but not necessarily atomic fraction) is already in the colcloud
+< 			I.rhocbins[vbin] += dvcol*rhocloud;
+< 			I.tcbins[vbin] += dvcol*tcloud;
+< 			I.Zcbins[vbin] += dvcol*Zcloud;			
+< 			// norm[bin] = I.vcbins[bin]
+< 			// These bins are in v-space
+< 			/* fprintf(stderr, "I[%d]: %d %g %g %g %g %g %g\n", */
+< 			/* 	  ionid, vbin, I.vcbins[vbin], I.tcbins[vbin], I.rhocbins[vbin], dvcol, vlower, vupper); */
+< 		      } // colcloud > 0
+< 		    } // bin_min < bin < bin_max
+---
+> 			if(colcloud > 0){
+> 			  I.vcbins[vbin] += dvcol*colcloud;
+> 			  // ionfrac is already in the colcloud
+> 			  I.rhocbins[vbin] += dvcol*rhocloud;
+> 			  I.tcbins[vbin] += dvcol*tcloud;
+> 			  // norm[bin] = I.vcbins[bin]
+> 			  // These bins are in v-space
+> 			} // colcloud > 0	    
+> 		      } // bin_min < bin < bin_max
+848c783
+< 		  } // irepz
+---
+> 		    } // irepz
+850,855c785,790
+< 		  if(ionid==-1){
+< 		    IonTotal = I;
+< 		  }else{
+< 		    Ion[ionid] = I;
+< 		  }
+< 		} // Loop: -1 < ionid < nions
+---
+> 		    if(ionid==-1){
+> 		      IonTotal = I;
+> 		    }else{
+> 		      Ion[ionid] = I;
+> 		    }
+> 		  } // Loop: -1 < ionid < nions
+858,859c793,795
+< 	      } // A Wind Particle
+< #endif	// WIND_BY_WIND	    
+---
+> 		} // The bin contains ONE cloud
+> 	      } // PhEW Wind
+> #endif	// PHEW	    
+950a887,917
+> #ifdef PHEW
+>     redshift_track = IonTotal.redshift[0];
+>     for(i = 0; i < nvbinsnew; i++) {
+>       redshift_track -= vres;
+> #ifndef SHORTSPEC
+>       cosmopar(CosmicTime(redshift_track));
+> #endif      
+>       if(IonTotal.vcbins[i] > 0){
+> 	IonTotal.tcbins[i] /= IonTotal.vcbins[i];
+> 	IonTotal.rhocbins[i] /= IonTotal.vcbins[i];
+>       }
+>       unit_col = Ion[0].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+>       // Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+>       // Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+>       IonTotal.vcbins[i] *= unit_col;
+>       IonTotal.vcbins[i] *= unit_Mass/Ion[0].atomwt;
+>       
+>       for(k = 0; k < nions; k++){
+> 	if(Ion[k].vcbins[i] > 0){
+> 	  Ion[k].tcbins[i] /= Ion[k].vcbins[i];
+> 	  Ion[k].rhocbins[i] /= Ion[k].vcbins[i];
+> 	}
+> 	unit_col = Ion[k].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+> 	// Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+> 	// Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+> 	Ion[k].vcbins[i] *= unit_col;
+> 	Ion[k].vcbins[i] *= unit_Mass/Ion[k].atomwt;
+>       }
+>     }  
+> #endif  // PHEW
+> 
+958,965c925,929
+< #ifndef SHORTSPEC
+<     free(bin_size);
+<     fprintf(stderr, "bin_size freed\n");        // To detect memory overflow
+<     free(bin_coord);
+<     fprintf(stderr, "bin_coord freed\n");            
+<     free(bin_redshift);
+<     fprintf(stderr, "bin_redshift freed\n");            
+<     free(spec_particles);
+---
+>     //free(bin_size);
+>     //free(bin_coord);
+>     //free(bin_redshift);
+> #ifndef SHORTSPEC	
+>     free(spec_particles); 
+968,972d931
+< #ifdef WIND_BY_WIND    
+<     free(voffset);
+<     free(vbin_coord);
+<     free(vbin_size);
+< #endif    
+975c934
+< }
+---
+>   }
+File: ./contsmoothspec_phew.c
+================================
+
+File: ./contsmoothspec_pp_easy.c
+================================
+
+File: ./contspecexbin_v8.c
+================================
+
+124,129c124
+< #endif
+< 
+< #if defined(WIND_BY_WIND) && defined(PHEW)
+<   fprintf(stderr, "ERROR: WIND_BY_WIND and PHEW are mutually exclusive!! QUIT!\n");
+<   exit(-1);
+< #endif
+---
+> #endif  
+195,196c190
+<   set_random_numbers();
+< #endif
+---
+> #endif  
+238a233,236
+> #ifdef PHEW
+>   set_random_numbers();
+> #endif  
+> 
+285,288c283
+< #else // LONGSPEC
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+<   nvloopbins = NVBINS_ADVANCED;
+< #endif  
+---
+> #else
+298d292
+<     fprintf(stderr, "Begin: GetSpecParticles()\n");
+301,302c295
+<     fprintf(stderr,"------------------------------------------------\n");     
+<     fprintf(stderr,"loop: %d nzbins = %d, count = %d, nzloopbins = %d\n",loop,nzbins,count,nzloopbins); 
+---
+>     fprintf(stderr,"nzbins = %d, count = %d, nzloopbins = %d\n",nzbins,count,nzloopbins); 
+308,309d300
+<     fprintf(stderr, "ContSmoothSpec() Done.\n");
+< 
+318c309
+<     nvloopbins += nvbins;    
+---
+>     nvloopbins += nvbins;
+322c313
+<   /* free(spec_particles); */
+---
+>   //free(spec_particles);
+326a318
+>   
+327a320
+> 			
+File: ./cosmo.c
+================================
+
+File: ./file_io.c
+================================
+
+59c59
+<     fprintf(stderr,"Could not open file %s\n",tabname);
+---
+>     fprintf(stderr,"Could not open tab file %s\n",tabname);
+140c140
+<     fprintf(stderr,"Could not open file %s\n",binname);
+---
+>     fprintf(stderr,"Could not open bin file %s\n",binname);
+146c146
+<     fprintf(stderr,"Could not open file %s\n",auxname);
+---
+>     fprintf(stderr,"Could not open aux file %s\n",auxname);
+155c155
+<     fprintf(stderr,"Could not open file %s\n",awname);
+---
+>     fprintf(stderr,"Could not open aw file %s\n",awname);
+235,238c235
+< 	  printf("Check Format: auxgp[%d]->ne = %g\n", i, auxgp->ne);
+< #ifdef WIND_BY_WIND
+< 	gp[i].delaytime = auxgp->delaytime;
+< #endif	
+---
+> 	  printf("NE: %g\n", auxgp->ne);
+247,249d243
+< #ifdef PHEW_RCLOUD_CORRECTION // TEMPORARY, SHOULD BE REMOVED LATER
+< 	  gp[i].rcloud /= (header.time * header.time);
+< #endif	  
+260,264d253
+< #endif
+< #ifdef PHEW_HSMOOTH
+< 	  gp[i].hsmooth = gps -> hsmooth * 0.5 / 5.04;
+< 	  // 5.04 = 128 ** (1./3.)
+< 	  // m.gad = 4./3. * rho.gad * l.gad ** 3 ?
+272c261
+< #endif    // PHEW
+---
+> #endif    
+File: ./finddiff.csh
+================================
+
+5c5
+< set basename2 = "../specexbin_phew/"
+---
+> set basename2 = "../specexbin_huang/"
+File: ./finddiff.csh~
+================================
+
+File: ./gammln.c
+================================
+
+File: ./getspecparticles.c
+================================
+
+38a39,40
+> 
+>   
+46d47
+<   fprintf(stderr, "Begin: FindLOS()\n");
+175a177
+>     //printf("redshift_track = %5.3e zorig = %9.7f i = %5d,binsize = %5.3e, bincoord = %5.3e bin_redshift = %9.7f bin_hubble = %5.3e\n",redshift_track,zorig,i-1,bin_size[i-1],bin_coord[i-1],bin_redshift[i-1], bin_hubble[i-1]);
+188d189
+<   fprintf(stderr,"i = %d\n",i);  
+File: ./getspecparticles_old.c
+================================
+
+File: ./initions.c
+================================
+
+26a27
+> 
+43d43
+<   /* nvbins = floor(nzbins/(VRES/ZRES)) + NVBINS_ADVANCED; */
+45,46c45
+< 
+<   fprintf(stderr,"nvbins = %d, nvloopbins = %d\n",nvbins, nvloopbins);
+---
+>   fprintf(stderr,"nvbins = %d\n",nvbins);
+98d96
+<     nvbins += nvloopbins; // In the case of NVBINS_ADVANCE
+118,119c116
+<       Ion[i].Zbins = malloc(nvbins*sizeof(double));      
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW      
+123c120
+<       Ion[i].Zcbins = malloc(nvbins*sizeof(double));      
+---
+>       Ion[i].Zbins = malloc(nvbins*sizeof(double));
+155c152
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW      
+159d155
+<     IonTotal.Zcbins = malloc(nvbins*sizeof(double));    
+177d172
+<     nvbins -= nvloopbins;
+199c194
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW
+203d197
+<       Ion[i].Zcbins = realloc(Ion[i].Zcbins,(nvloopbins+nvbins)*sizeof(double));      
+234c228
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW
+238d231
+<     IonTotal.Zcbins = realloc(IonTotal.Zcbins,(nvloopbins+nvbins)*sizeof(double));    
+259,275d251
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+<   if(nvloopbins == NVBINS_ADVANCED) // First call
+<     for( i=0; i<nvloopbins; i++ ){
+<       IonTotal.vcbins[i] = IonTotal.tcbins[i] = IonTotal.rhocbins[i] = IonTotal.Zcbins[i] = 0.0;
+<       for(j=0;j<MAXIONS;j++){
+< 	Ion[j].vcbins[i] = Ion[j].tcbins[i] = Ion[j].rhocbins[i] = Ion[j].Zcbins[i] = 0.0;
+<       }
+<     }
+<   for( i=nvloopbins; i<nvloopbins+nvbins; i++ ){
+<     IonTotal.vcbins[i] = IonTotal.tcbins[i] = IonTotal.rhocbins[i] = IonTotal.Zcbins[i] = 0.0;
+<     for(j=0;j<MAXIONS;j++){
+<       Ion[j].vcbins[i] = Ion[j].tcbins[i] = Ion[j].rhocbins[i] = Ion[j].Zcbins[i] = 0.0;
+<     }
+<   }
+<   fprintf(stderr, "=== Update Ion.vcbins From %d to %d ===\n", nvloopbins, nvloopbins+nvbins);
+< #endif
+<   
+311c287
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW
+314,315c290
+<     free(Ion[i].tcbins);
+<     free(Ion[i].Zcbins);        
+---
+>     free(Ion[i].tcbins);    
+329c304
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW
+332,333c307
+<   free(IonTotal.tcbins);
+<   free(IonTotal.Zcbins);      
+---
+>   free(IonTotal.tcbins);    
+File: ./intaufact.c
+================================
+
+File: ./ionfrac.c
+================================
+
+File: ./makespectab.c
+================================
+
+File: ./outtau.c
+================================
+
+93d92
+<     /* if(1>0){       */
+95d93
+<       /* fprintf(outfile, "%d ",i);       */
+203,272c201
+< #endif // PHEW
+< 
+< #ifdef WIND_BY_WIND 
+<   // The format is exactly the same as specztau or specaim. Only contains wind information
+< #ifdef SHORTSPEC
+<   sprintf(fname,"specaimw.%s.%s",sim_id,namesuffix);
+< #else
+<   if(theta>0){
+<     sprintf(fname,"specztauw.%s.%d.%d_%d",sim_id,iname,jname,kname);
+<   }else{
+<     sprintf(fname,"specztauw.%s.%s.%d_%d",sim_id,id,jname,kname);
+<   }
+< #endif
+< #ifdef OUTPUT_LOCAL_FOLDER
+<   outfile = fopen(fname,"w");
+< #else
+<   strcat(strcpy(longfname, spec_dir), fname);
+<   outfile = fopen(longfname,"w");
+< #endif
+< 
+<   fprintf(stderr,"Outputting in Spectau (Winds)!!!!\n");
+<   i = 0;
+<   redshift_track = IonTotal.redshift[0];
+<   while(redshift_track>redshift_begin-0.01){
+<     redshift_track -= vres;
+<     //fprintf(stderr,"redshift_track = %f redshift_begin = %f redshift_end = %f\n",redshift_track,redshift_begin,redshift_end);
+<     if( redshift_track > redshift_begin && redshift_track < redshift_end){
+<       /* Only write within the z boundary. (Exclude z < 0 for example) */
+<       fprintf(outfile, "%10.7f ",redshift_track);
+<       /* fprintf(outfile, "%d ",i); */
+< #ifdef SHORTSPEC
+<       cosmopar(CosmicTime(redshift_center));
+< #else
+<       cosmopar(CosmicTime(redshift_track));
+< #endif
+<       /* Convert rho to overdensities for output */
+<       rhomean = XH*1.88e-29*Omega_b*h*h/(aex*aex*aex);
+<       for(k=-1; k<nions; k++) {
+< 	if(k==-1){
+<           IonTotal.rhocbins[i] = log10(IonTotal.rhocbins[i]/rhomean);
+<           IonTotal.tcbins[i] = log10(IonTotal.tcbins[i]);
+< 	  if(isnan(IonTotal.rhocbins[i]) || isinf(IonTotal.rhocbins[i])) IonTotal.rhocbins[i] = 0.0;
+< 	  if(isnan(IonTotal.tcbins[i]) || isinf(IonTotal.tcbins[i])) IonTotal.tcbins[i] = 0.0;
+< 	}else{
+< 	  Ion[k].rhocbins[i] = log10(Ion[k].rhocbins[i]/rhomean);
+< 	  Ion[k].tcbins[i] = log10(Ion[k].tcbins[i]);
+< 	  if(isnan(Ion[k].rhocbins[i]) || isinf(Ion[k].rhocbins[i])) Ion[k].rhocbins[i] = 0.0;
+< 	  if(isnan(Ion[k].tcbins[i]) || isinf(Ion[k].tcbins[i])) Ion[k].tcbins[i] = 0.0;
+< 	  if(isnan(Ion[k].Zcbins[i]) || isinf(Ion[k].Zcbins[i])) Ion[k].Zcbins[i] = 0.0;
+< 	  if(isnan(Ion[k].vcbins[i]) || isinf(Ion[k].vcbins[i])) Ion[k].vcbins[i] = 0.0;
+< 	}
+< 	if(k==-1){
+< 	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhocbins[i],IonTotal.tcbins[i],IonTotal.Zcbins[i]);
+< 	}else{
+< 	  fprintf(outfile, "% 5.2f %5.2f %5.3e %5.3e ", Ion[k].rhocbins[i],Ion[k].tcbins[i],Ion[k].Zcbins[i],Ion[k].vcbins[i]);
+< 	}
+<       /* if(k == 0) */
+<       /* 	if(Ion[k].vcbins[i] < 0.0 || (Ion[k].vcbins[i] > 0.0 && Ion[k].vcbins[i] < 1.e-30)){ */
+<       /* 	  fprintf(stderr, "STRANGE BIN: Ion[0].vcbins[%d] = %g\n", */
+<       /* 		  i, Ion[0].vcbins[i]); */
+<       /* 	} */
+<       }
+<       fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]);
+<       fprintf(outfile,"\n");
+<     }
+<     i++;
+<   } // while(redshift_track>redshift_begin-0.01)
+<   fclose(outfile); // specztau or specaim
+<   fprintf(stderr, "SUCCESSFUL! Done Writting....\n");
+< #endif // WIND_BY_WIND
+---
+> #endif  
+File: ./poidev.c
+================================
+
+File: ./ran1.c
+================================
+
+File: ./read_hdf5.c
+================================
+
+File: ./tau.c
+================================
+
+97d96
+< 
+129,134c128
+<   }
+<   fprintf(stderr, "TAUBEGIN: i=%d nvbins=%d\n",
+< 	  i-1, nvbins);
+<   // Normal: 2795, 2793: loop = 6
+<   // Wind: 2798, 2793
+<   // - redshift_track= 0.029997  IonTotal.redshift[nzbins-1]= -0.011976 nzbins= 13979
+---
+>   } 
+138c132
+< 
+---
+>   
+239c233
+< 	if(Zcol==-1){ // H or He or IonTotal
+---
+> 	if(Zcol==-1){
+375,381d368
+< 	  /* if(ionid == 4) */
+< 	  /*   fprintf(stderr, "SPH: %g %g %g | %g %g | %g %g %g %d %d %d\n", */
+< 	  /* 	    mass_interp, t_interp, v_interp, */
+< 	  /* 	    hubble_expansion, voffset, */
+< 	  /* 	    vbin_coord[0], vbin_coord[nvbins-1], NBSMOOTH*b, */
+< 	  /* 	    bin_min, bin_max, nvbins); */
+< 
+429c416
+< 	      if(I.Zcolumn==-1){ // H, He, or IonTotal
+---
+> 	      if(I.Zcolumn==-1){
+431d417
+< 		// Or means H, He ... 
+433,436c419
+< 		// For H, He, we must have I.fraction, because M_H = Mass * I.fraction!!!!!
+< 		I.vbins[bin] += dvcol*mass_interp*I.fraction;
+< 		// In the case of wind, the I.fraction is multiplied at the very end.
+< 		//    because I.vcbins is used to normalize rhocbins, tcbins, Zcbins later
+---
+> 		I.vbins[bin] += dvcol*mass_interp*I.fraction; 
+443,449d425
+< 	      /* if(bin == 1750 && ionid == 0){ */
+< 	      /* 	fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g\n", */
+< 	      /* 		I.vbins[bin], bin, */
+< 	      /* 		v_interp, voffset, mass_interp, dvcol, */
+< 	      /* 		bin_min, bin_max, vbin_coord[bin]); */
+< 	      /* } */
+< 	      
+510,545d485
+< 
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+<     redshift_track = IonTotal.redshift[0];
+<     for(i = 0; i < nvbins; i++) {
+<       redshift_track -= vres;
+< #ifndef SHORTSPEC
+<       cosmopar(CosmicTime(redshift_track));
+< #endif      
+<       if(IonTotal.vcbins[i] > 0){
+< 	IonTotal.tcbins[i] /= IonTotal.vcbins[i];
+< 	IonTotal.rhocbins[i] /= IonTotal.vcbins[i];
+< 	IonTotal.Zcbins[i] /= IonTotal.vcbins[i];	
+<       }
+<       unit_col = Ion[0].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+<       // Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+<       // Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+<       IonTotal.vcbins[i] *= 0.0122;
+<       IonTotal.vcbins[i] *= unit_col;
+<       IonTotal.vcbins[i] *= unit_Mass/Ion[0].atomwt;
+<       
+<       for(k = 0; k < nions; k++){
+< 	if(Ion[k].vcbins[i] > 0){
+< 	  Ion[k].tcbins[i] /= Ion[k].vcbins[i];
+< 	  Ion[k].rhocbins[i] /= Ion[k].vcbins[i];
+< 	  Ion[k].Zcbins[i] /= Ion[k].vcbins[i];	  
+< 	}
+< 	unit_col = Ion[k].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
+< 	// Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
+< 	// Ion[i].Xsec *= 2.648e-2*Ion[i].lambda*1.e-13
+< 
+< 	if(Ion[k].Zcolumn == -1) Ion[k].vcbins[i] *= Ion[k].fraction;
+< 	Ion[k].vcbins[i] *= unit_col;
+< 	Ion[k].vcbins[i] *= unit_Mass/Ion[k].atomwt;
+<       }
+<     }  
+< #endif  // PHEW
+File: ./taudecdens.c
+================================
+
+File: CIV.cln
+================================
+
+File: cloud.CIV.cln
+================================
+
+File: cloud.HI.cln
+================================
+
+File: cloud.MgII.cln
+================================
+
+File: cloud.OVI.cln
+================================
+
+File: HI.cln
+================================
+
+File: MgII.cln
+================================
+
+File: mkspecRAD.c
+================================
+
+File: old.CIV.cln
+================================
+
+File: old.HI.cln
+================================
+
+File: old.MgII.cln
+================================
+
+File: old.OVI.cln
+================================
+
+File: OVI.cln
+================================
+
+File: pp.CIV.cln
+================================
+
+File: ppe.CIV.cln
+================================
+
+File: ppe.HI.cln
+================================
+
+File: ppe.MgII.cln
+================================
+
+File: ppe.OVI.cln
+================================
+
+File: pp.HI.cln
+================================
+
+File: pp.MgII.cln
+================================
+
+File: pp.OVI.cln
+================================
+
+File: pp.p50n288o5.HI.cln
+================================
+
+File: sm.CIV.cln
+================================
+
+File: sm.HI.cln
+================================
+
+File: sm.MgII.cln
+================================
+
+File: sm.OVI.cln
+================================
+
+File: sm.p50n288o5.HI.cln
+================================
+
+File: sph.CIV.cln
+================================
+
+File: sph.HI.cln
+================================
+
+File: sph.MgII.cln
+================================
+
+File: sph.OVI.cln
+================================
+
+File: ./binzfile.shortlos.h727
+================================
+
+File: ./binzfile.test.halo1
+================================
+
+File: ./defs.h
+================================
+
+File: ./extern.h
+================================
+
+File: ./iontab.h
+================================
+
+File: ./nr.h
+================================
+
+File: ./nrutil.h
+================================
+
+File: ./owls.h
+================================
+
+File: ./partzfile.shortlos.h727
+================================
+
+File: ./partzfile.test.halo1
+================================
+
+File: ./proto.h
+================================
+
+2,3c2,3
+< void set_random_numbers(void);
+< double get_random_number(unsigned int id);
+---
+> void set_random_generator(void);
+> double get_random_generator(unsigned int id);
+File: ./specaim.shortlos.h727
+================================
+
+File: ./specaim.test.halo1
+================================
+
+File: ./specaimw.shortlos.h727
+================================
+
+File: ./specaimw.shortlos.h727.pp
+================================
+
+File: ./specaimw.shortlos.h727.ppeasy
+================================
+
+File: ./specaimw.test.halo1
+================================
+
+File: ./specexbindefs.h
+================================
+
+8,11d7
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+< #define NVBINS_ADVANCED 250 // About 200 km/s
+< #endif
+< 
+54,56d49
+< #ifdef WIND_BY_WIND
+<   Real delaytime;
+< #endif  
+90c83
+< #if defined(PHEW) || defined(WIND_BY_WIND)
+---
+> #ifdef PHEW
+96,97c89
+<   double *Zcbins;
+< #endif
+---
+> #endif  
+File: ./tipsydefs.h
+================================
+
+File: ./tipsydefs_n2.h
+================================
+
+83c83
+<   float mass_cloud;
+---
+>   float wind_mass;
+File: ./tipsydefs_n.h
+================================
+
+File: vpdefs.h
+================================
+
