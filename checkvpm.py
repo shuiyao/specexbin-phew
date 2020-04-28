@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 from scipy import array, log10, linspace, histogram
 import ioformat
 
-f1 = "specztau.p50n288o5.37.200_0.vpm"
-f2 = "specztauw.p50n288o5pp.37.200_0.vpm"
+# f1 = "specztau.p50n288o5.37.200_0.vpm"
+# f2 = "specztauw.p50n288o5pp.37.200_0.vpm"
+f1 = "./autovp/HI.vpm"
+f2 = "./autovp/OVI.vpm"
 
 NHI1, v1 = ioformat.rcol(f1, [1,2])
 for i in range(len(NHI1)): NHI1[i] = log10(NHI1[i]) + 13

@@ -16,24 +16,17 @@ taufact=1.0
 subfolder="z0.25"
 zquasar=0.26
 
-# f="../ztauw.37.5_0"
+# f="../specaimw.shortlos.h727.pp"
 # prefix="pp"
-# f="../ztau.37.5_0"
-# prefix="sm"
-#f="../shortlos.p50n288o5pp.10kpc"
-#prefix="pp"
-f="../specaimw.shortlos.h727.pp"
+f="/proj/shuiyao/los/specztauw.l25n144-phewoff-pp.10.50_0"
 prefix="pp"
-# f="../specaimw.shortlos.h727.ppeasy"
-# prefix="ppe"
-
 
 
 for ion in `echo $ions`
 do
     echo ================ $ion ================
     #mkspecRad
-    ./mkspecRAD ./$f $sn $zquasar $taufact $dvpix $dvres $ion >> out.mkspecRAD.$subfolder
+    ./mkspecRAD $f $sn $zquasar $taufact $dvpix $dvres $ion >> out.mkspecRAD.$subfolder
     echo cp $ion.raw $ion.cln
     cp $ion.raw $ion.cln
     cp $ion.cln $prefix.$ion.cln

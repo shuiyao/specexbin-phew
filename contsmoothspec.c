@@ -69,7 +69,7 @@ int ContSmoothSpec()
 #ifndef OUTPUT_LOCAL_FOLDER
   char longbinname[400], longpartname[400];
   char spec_dir[100];
-  strcpy(spec_dir, "/scratch/shuiyao/los/shortlos/");
+  strcpy(spec_dir, FOLDER_OUTPUT);
 #endif
 #endif
   float IonFrac(),*ionfrac;
@@ -237,16 +237,16 @@ int ContSmoothSpec()
   zcoord = 0;
   /* while(redshift_track >= IonTotal.redshift[nzbins-1]){ */
   /* while(redshift_track >= bin_redshift[nzbins-1]){ */
-  zstep = vres/(BOXSIZE*hubble*unit_Velocity/clight);
 
   while(bin < nvloopbins + nvbins){    
     redshift_track -= vres; // vres = VRES is defined in specexbindefs.h
 #ifndef SHORTSPEC  
     cosmopar(CosmicTime(redshift_track));
 #endif
-    vstep = zstep*aex*hubble*unit_Velocity; // Need aex from cosmopar
-
+    // IMPORTANT: Need aex and hubble from cosmopar()    
+    zstep = vres/(BOXSIZE*hubble*unit_Velocity/clight);
     zcoord += zstep;
+    vstep = zstep*aex*hubble*unit_Velocity;
     vcoord += vstep;
     bin++;
     /* vbin_size = realloc(vbin_size, bin*sizeof(double)); */
@@ -255,6 +255,7 @@ int ContSmoothSpec()
     vbin_coord[bin-1] = vcoord/1.e5;
   }
 
+  zstep = vres/(BOXSIZE*hubble*unit_Velocity/clight);  
   vstep = zstep*aex*hubble*unit_Velocity; // Because later on it is needed.
 
   // bin does not necessarily equal to nzloopbins + nzbins, because
