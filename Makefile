@@ -57,7 +57,9 @@ OPT     +=  -DINTKERNELNHLIMIT
 #OPT	+=  -DOWLSFORMAT
 
 ifeq (HDF5FORMAT,$(findstring HDF5FORMAT,$(OPT)))
-	HDF5_LIBS= -lhdf5
+	HDF5_INCL = -I/usr/include/hdf5/serial -DH5_USE_16_API
+	HDF5_LIBS = -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_serial -lz
+	# HDF5_LIBS= -lhdf5
 endif
 
 CC= gcc
@@ -66,7 +68,7 @@ CLINK=gcc
 FLINK=f77
 GSL_INCL=-I/home/shuiyao/include
 GSL_LIBS=-L/home/shuiyao/lib
-CFLAGS= ${OPT} -g $(GSL_INCL) -O2
+CFLAGS= ${OPT} -g $(GSL_INCL) $(HDF5_INCL) -O2
 FFLAGS= -O
 CLIB= -lm -lgsl -lgslcblas $(GSL_LIBS) $(HDF5_LIBS)
 FLIB= 
