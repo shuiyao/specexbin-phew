@@ -327,7 +327,7 @@ int load_hdf5(char *basename, int itype)
       cnt += 1;
     }
 
-#ifdef PHEW_EXTRA_OUTPUT    
+#ifdef PHEW
     hdf5_dataset = H5Dopen1(hdf5_grp, "PhEWKey");
     H5Dread(hdf5_dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, intsingle);
     H5Dclose(hdf5_dataset);
@@ -336,6 +336,13 @@ int load_hdf5(char *basename, int itype)
       cnt += 1;
     }
     hdf5_dataset = H5Dopen1(hdf5_grp, "PhEWMcloud");
+    H5Dread(hdf5_dataset, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, single);
+    H5Dclose(hdf5_dataset);
+    for(i=ngas, cnt=0; i<gheader.npart[0]+ngas; i++){
+      P[i].Mcloud = single[cnt];
+      cnt += 1;
+    }
+    hdf5_dataset = H5Dopen1(hdf5_grp, "PhEWRcloud");
     H5Dread(hdf5_dataset, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, single);
     H5Dclose(hdf5_dataset);
     for(i=ngas, cnt=0; i<gheader.npart[0]+ngas; i++){

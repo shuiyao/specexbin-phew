@@ -287,8 +287,13 @@ int ContSmoothSpec()
       for(m=0;m<NMETALS;m++) Ion[k].metals[m][i] = 0;
     }
   }
+
+  /* ++++++++++++++++ MAIN LOOP BEGINS ++++++++++++++++ */
   for (i = 0 ;i < count ;i++) {
     cp = spec_particles+i;
+#ifdef PHEW
+    if(cp->wind_flag) continue;
+#endif
     for(irep[0] = -1; irep[0] <= 1; irep[0]++) {
       for(irep[1] = -1; irep[1] <= 1; irep[1]++) {
 	for(irep[2] = -1; irep[2] <= 1; irep[2]++) {
@@ -649,10 +654,6 @@ int ContSmoothSpec()
 	    // ----------------------------------------------------------------
 
 		IonTotal.mass[bin+nzloopbins] += kernel*cp->mass ;
-		//if(bin==nzbins-2 || bin==nzbins-1){ 
-		//fprintf(stdout,"LASTBIN: nzbins= %5d kernel= % 5.3e cp->mass= %5.3e mass= %5.3e tot= %5.3e zlower= % 5.3e zupper= % 5.3e radius2= % 5.3e radius= % 5.3e\n",bin,kernel,cp->mass,kernel*cp->mass,IonTotal.mass[bin+nzloopbins],zlower,zupper,radius2,radius);
-		//}
-		//if(bin%3000==0)fprintf(stderr,"(%d)= %g %g %g\n",bin+nzloopbins,IonTotal.vel[bin+nzloopbins],kernel,cp->mass);
 #ifdef ZEROVEL
 		IonTotal.vel[bin+nzloopbins] = 0;
 #else 
@@ -856,10 +857,10 @@ int ContSmoothSpec()
 	} // irep
       } // irep
     } // FOR: 0 < i < count
+  /* ---------------- MAIN LOOP ENDS ---------------- */
 
     //fprintf(binfile,"# MIN z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[nzloopbins],bin_redshift[nzloopbins],IonTotal.vel[nzloopbins],IonTotal.temp[nzloopbins],IonTotal.rho[nzloopbins],IonTotal.metals[0][nzloopbins],IonTotal.mass[nzloopbins]);
     //fprintf(binfile,"# MAX z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[nzloopbins+nzbins-1],bin_redshift[nzloopbins+nzbins-1],IonTotal.vel[nzloopbins+nzbins-1],IonTotal.temp[nzloopbins+nzbins-1],IonTotal.rho[nzloopbins+nzbins-1],IonTotal.metals[0][nzloopbins+nzbins-1],IonTotal.mass[nzloopbins+nzbins-1]);
-
 
     for(i = nzloopbins; i < nzloopbins+nzbins; i++){
       if(IonTotal.mass[i] != 0.0){

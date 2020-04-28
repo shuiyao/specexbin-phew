@@ -115,6 +115,10 @@ int main(int argc,char **argv)
   fprintf(stderr, "ERROR: PART_BY_PART and PHEW are mutually exclusive!! QUIT!\n");
   exit(-1);
 #endif
+#if defined(HDF5FORMAT) && defined(METALFLOOR)
+  fprintf(stderr, "ERROR: HDF5FORMAT and METALFLOOR are mutually exclusive!! QUIT!\n");
+  exit(-1);
+#endif
 
   zres = ZRES;
   vres = VRES;

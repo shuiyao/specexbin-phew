@@ -110,21 +110,21 @@ int Open_Snapshot(char *snapname){
 #else
   sprintf(binname,"%s.bin",snapname);
   if( (binfile = fopen(binname,"r")) == NULL ) {
-  fprintf(stderr,"Could not open file %s\n",binname);
-  return 0;
-}
+    fprintf(stderr,"Could not open file %s\n",binname);
+    return 0;
+  }
 #ifdef TIPSYFORMAT 
   sprintf(auxname,"%s.aux",snapname);
   if( (auxfile = fopen(auxname,"r")) == NULL ) {
-  fprintf(stderr,"Could not open file %s\n",auxname);
-  return 0;
-}
+    fprintf(stderr,"Could not open file %s\n",auxname);
+    return 0;
+  }
 #ifdef PHEW
   sprintf(awname,"%s.aw",snapname);
   if( (awfile = fopen(awname,"r")) == NULL ) {
-  fprintf(stderr,"Could not open file %s\n",awname);
-  return 0;
-}
+    fprintf(stderr,"Could not open file %s\n",awname);
+    return 0;
+  }
 #endif  // PHEW
 #endif // TIPSYFORMAT
 #endif // HDF5FORMAT
@@ -147,199 +147,199 @@ int Open_Snapshot(char *snapname){
 #endif
       // note: vel_corr = sqrt(a^3) / h; vel /= vel_corr; but when converting from hdf5 to tipsy, I ignore the *= sqrt(a^3) factor, which is canceled out.
     } // j
-      gp[i].rho = P[i].Rho * UNIT_M / (pow(UNIT_L, 3)) * unit_Density;
+    gp[i].rho = P[i].Rho * UNIT_M / (pow(UNIT_L, 3) * unit_Density);
 #ifdef DENSITY_H2_FACTOR
-      gp[i].rho = gp[i].rho * gheader.HubbleParam * gheader.HubbleParam;
+    gp[i].rho = gp[i].rho * gheader.HubbleParam * gheader.HubbleParam;
 #endif
 
-      MeanWeight = (1 + 4 * XHE) / (1 + P[i].Ne + XHE);
-      gp[i].temp = P[i].Temp * unit_Temp;
-      gp[i].temp *= GAMMAM1 * MeanWeight * MHYDR / KBOLTZ;
+    MeanWeight = (1 + 4 * XHE) / (1 + P[i].Ne + XHE);
+    gp[i].temp = P[i].Temp * unit_Temp;
+    gp[i].temp *= GAMMAM1 * MeanWeight * MHYDR / KBOLTZ;
 
-      gp[i].hsmooth = P[i].Hsml * UNIT_L / unit_Length * 0.5;
+    gp[i].hsmooth = P[i].Hsml * UNIT_L / unit_Length * 0.5;
 #ifdef QUINTIC_KERNEL
-      gp[i].hsmooth = gp[i].hsmooth / 1.2275;
+    gp[i].hsmooth = gp[i].hsmooth / 1.2275;
 #endif
 
-      for(j=0;j<NMETALS;j++) gp[i].metals[j] = P[i].metal[j];
-      gp[i].sfr = P[i].Sfr;
-      if(gp[i].metals[3] > 10){
-	printf("BAD METAL: %d %g %lu %lu %lu\n", i, gp[i].metals[3],
-	       sizeof(Real), sizeof(int), sizeof(short int));
-	exit(-1);
-      }
-      if(i<10)
-	printf("Check Format: P[%d]->ne = %g\n", i, P[i].Ne);
+    for(j=0;j<NMETALS;j++) gp[i].metals[j] = P[i].metal[j];
+    gp[i].sfr = P[i].Sfr;
+    if(gp[i].metals[3] > 10){
+      printf("BAD METAL: %d %g %lu %lu %lu\n", i, gp[i].metals[3],
+	     sizeof(Real), sizeof(int), sizeof(short int));
+      exit(-1);
+    }
+    if(i<10)
+      printf("Check Format: P[%d]->ne = %g\n", i, P[i].Ne);
 
 #ifdef PHEW
-      gp[i].wind_flag = (P[i].Mcloud > 0) ? 1 : 0;
-      if(gp[i].wind_flag){ // Surely a PhEW particle
-	gp[i].idx = i; // Debug
-	gp[i].rcloud = P[i].Rcloud;
+    gp[i].wind_flag = (P[i].Mcloud > 0) ? 1 : 0;
+    if(gp[i].wind_flag){ // Surely a PhEW particle
+      gp[i].idx = i; // Debug
+      gp[i].rcloud = P[i].Rcloud;
 #ifdef PHEW_RCLOUD_CORRECTION 
-	gp[i].rcloud /= (gheader.time * gheader.time);
+      gp[i].rcloud /= (gheader.time * gheader.time);
 #endif	  
 #ifdef PHEW_NCLOUD	  
-	gp[i].ncloud = PHEW_NCLOUD;
+      gp[i].ncloud = PHEW_NCLOUD;
 #else
-	gp[i].ncloud = 0;
+      gp[i].ncloud = 0;
 #endif
 #ifdef PHEW_HSMOOTH
-	gp[i].hsmooth = gp[i].hsmooth / 5.04;
-	// 5.04 = 128 ** (1./3.)
-	// m.gad = 4./3. * rho.gad * l.gad ** 3 ?
+      gp[i].hsmooth = gp[i].hsmooth / 5.04;
+      // 5.04 = 128 ** (1./3.)
+      // m.gad = 4./3. * rho.gad * l.gad ** 3 ?
 #endif	  
-      }
-	else{
-	gp[i].idx = -1;
-	gp[i].rcloud = 0.0;
-	gp[i].ncloud = 0.0;
-      }
+    }
+    else{
+      gp[i].idx = -1;
+      gp[i].rcloud = 0.0;
+      gp[i].ncloud = 0.0;
+    }
 #endif    // PHEW
-      } // i loop: 0 ~ nsph
-	free(P);
+  } // i loop: 0 ~ nsph
+  free(P);
   
 #else // ----------------> Tipsy Format
 
 #ifdef TIPSYFORMAT
-	if(!fread(&header,sizeof(struct dump),1,binfile))
-	  io_error_msg("file_io.c: binfile not read.");
-	gp = malloc(sizeof(struct spec_particle)*header.nsph);
-	auxgp = (struct aux_gas_data *)malloc(sizeof(struct aux_gas_data));
-	gps = (struct gas_particle *)malloc(sizeof(struct gas_particle));
+  if(!fread(&header,sizeof(struct dump),1,binfile))
+    io_error_msg("file_io.c: binfile not read.");
+  gp = malloc(sizeof(struct spec_particle)*header.nsph);
+  auxgp = (struct aux_gas_data *)malloc(sizeof(struct aux_gas_data));
+  gps = (struct gas_particle *)malloc(sizeof(struct gas_particle));
 
 #ifdef VELOCITY_UNIT_CORRECTION
-	double vel_corr;
-	vel_corr = sqrt(header.time * header.time * header.time) / h;
+  double vel_corr;
+  vel_corr = sqrt(header.time * header.time * header.time) / h;
 #endif
 
-	nsph = header.nsph;
-	for(i=0; i < header.nsph ; i++){
-	if(!fread((char *)gps, sizeof(struct gas_particle),1,binfile))
-	  io_error_msg("file_io.c: gps not read.");
-	gp[i].mass = gps->mass;
-	for(j=0;j<MAXDIM;j++){
-	gp[i].pos[j] = gps->pos[j];
+  nsph = header.nsph;
+  for(i=0; i < header.nsph ; i++){
+    if(!fread((char *)gps, sizeof(struct gas_particle),1,binfile))
+      io_error_msg("file_io.c: gps not read.");
+    gp[i].mass = gps->mass;
+    for(j=0;j<MAXDIM;j++){
+      gp[i].pos[j] = gps->pos[j];
 #ifndef VELOCITY_UNIT_CORRECTION
-	gp[i].vel[j] = gps->vel[j];
+      gp[i].vel[j] = gps->vel[j];
 #else
-	gp[i].vel[j] = gps->vel[j] / vel_corr;
+      gp[i].vel[j] = gps->vel[j] / vel_corr;
 #endif
-      }
+    }
 #ifndef DENSITY_H2_FACTOR
-	gp[i].rho = gps->rho;
+    gp[i].rho = gps->rho;
 #else
-	gp[i].rho = gps->rho * h * h;
+    gp[i].rho = gps->rho * h * h;
 #endif
-	gp[i].temp = gps->temp;
+    gp[i].temp = gps->temp;
 #ifndef QUINTIC_KERNEL
-	gp[i].hsmooth = gps->hsmooth * 0.5;
+    gp[i].hsmooth = gps->hsmooth * 0.5;
 #else
-	gp[i].hsmooth = gps->hsmooth * 0.5 / 1.2275;
+    gp[i].hsmooth = gps->hsmooth * 0.5 / 1.2275;
 #endif
-	/* On 7-28-11, it became apparent I was always assuming solar abundance ratios since late 2009, because of these parentheses. -- only added this wrong way after adapted for HDF5, only affects Opp. et al 2011... phew, just in time. */ 
-	if(!fread((char *)auxgp, sizeof(struct aux_gas_data),1,auxfile))
-	  io_error_msg("file_io.c: auxgp not read.");
-	for(j=0;j<NMETALS;j++) gp[i].metals[j] = auxgp->metal[j];
-	gp[i].sfr = auxgp->sfr;
-	if(gp[i].metals[3] > 10){
-	printf("BAD METAL: %d %g %lu %lu %lu\n", i, gp[i].metals[3],
-	  sizeof(Real), sizeof(int), sizeof(short int));
-	exit(-1);
-      }
-	//	fread(&gp[i].sfr,sizeof(Real),1,auxfile);
-	if(i<10)
-	  printf("Check Format: auxgp[%d]->ne = %g\n", i, auxgp->ne);
+    /* On 7-28-11, it became apparent I was always assuming solar abundance ratios since late 2009, because of these parentheses. -- only added this wrong way after adapted for HDF5, only affects Opp. et al 2011... phew, just in time. */ 
+    if(!fread((char *)auxgp, sizeof(struct aux_gas_data),1,auxfile))
+      io_error_msg("file_io.c: auxgp not read.");
+    for(j=0;j<NMETALS;j++) gp[i].metals[j] = auxgp->metal[j];
+    gp[i].sfr = auxgp->sfr;
+    if(gp[i].metals[3] > 10){
+      printf("BAD METAL: %d %g %lu %lu %lu\n", i, gp[i].metals[3],
+	     sizeof(Real), sizeof(int), sizeof(short int));
+      exit(-1);
+    }
+    //	fread(&gp[i].sfr,sizeof(Real),1,auxfile);
+    if(i<10)
+      printf("Check Format: auxgp[%d]->ne = %g\n", i, auxgp->ne);
 #ifdef PART_BY_PART
-	gp[i].delaytime = auxgp->delaytime;
+    gp[i].delaytime = auxgp->delaytime;
 #endif	
 
 #ifdef PHEW
-	awgp = (struct aw_gas_data *)malloc(sizeof(struct aw_gas_data));    
-	fread((char *)awgp, sizeof(struct aw_gas_data),1,awfile);
-	gp[i].wind_flag = awgp -> wind_flag;
-	if(awgp -> wind_flag > 0 && auxgp -> delaytime > 0){ // Surely a PhEW particle
-	gp[i].idx = i;
-	gp[i].rcloud = awgp -> rcloud;
+    awgp = (struct aw_gas_data *)malloc(sizeof(struct aw_gas_data));    
+    fread((char *)awgp, sizeof(struct aw_gas_data),1,awfile);
+    gp[i].wind_flag = awgp -> wind_flag;
+    if(awgp -> wind_flag > 0 && auxgp -> delaytime > 0){ // Surely a PhEW particle
+      gp[i].idx = i;
+      gp[i].rcloud = awgp -> rcloud;
 #ifdef PHEW_RCLOUD_CORRECTION // TEMPORARY, SHOULD BE REMOVED LATER
-	gp[i].rcloud /= (header.time * header.time);
+      gp[i].rcloud /= (header.time * header.time);
 #endif	  
 #ifndef DENSITY_H2_FACTOR
-	gp[i].rho = awgp -> rho;
+      gp[i].rho = awgp -> rho;
 #else	  
-	gp[i].rho = awgp -> rho * h * h; // Be careful of the units!
+      gp[i].rho = awgp -> rho * h * h; // Be careful of the units!
 #endif	  
-	gp[i].temp = awgp -> temp; // Be careful of the units!
+      gp[i].temp = awgp -> temp; // Be careful of the units!
 #ifdef PHEW_NCLOUD	  
-	gp[i].ncloud = PHEW_NCLOUD;
+      gp[i].ncloud = PHEW_NCLOUD;
 #else
-	gp[i].ncloud = gps -> mass / awgp -> mass_cloud;
+      gp[i].ncloud = gps -> mass / awgp -> mass_cloud;
 #endif
 #ifdef PHEW_HSMOOTH
-	gp[i].hsmooth = gps -> hsmooth * 0.5 / 5.04;
-	// 5.04 = 128 ** (1./3.)
-	// m.gad = 4./3. * rho.gad * l.gad ** 3 ?
+      gp[i].hsmooth = gps -> hsmooth * 0.5 / 5.04;
+      // 5.04 = 128 ** (1./3.)
+      // m.gad = 4./3. * rho.gad * l.gad ** 3 ?
 #endif	  
-      }
-	else{
-	gp[i].idx = -1;
-	gp[i].rcloud = 0.0;
-	gp[i].ncloud = 0.0;
-      }
+    }
+    else{
+      gp[i].idx = -1;
+      gp[i].rcloud = 0.0;
+      gp[i].ncloud = 0.0;
+    }
 #endif    // PHEW
-      } // i loop (tipsyformat)
-	free(auxgp);
-	free(gps);
+  } // i loop (tipsyformat)
+  free(auxgp);
+  free(gps);
 #ifdef PHEW
-	free(awgp);
+  free(awgp);
 #endif    
 
 #endif // TIPSYFORMAT
 #endif // HDF5FORMAT
 
-	Rotate90Box();
-	return 1;
-      }
+  Rotate90Box();
+  return 1;
+}
 
-      int Rotate90Box()
-      {
-	int i,ri;
-	double hold;
+int Rotate90Box()
+{
+  int i,ri;
+  double hold;
 
-	ri = 0;
+  ri = 0;
 
-	for(i=0;i<nsph;i++){
-	  if(direction==1){
-	    hold = gp[i].pos[2];
-	    gp[i].pos[2] = gp[i].pos[1];
-	    gp[i].pos[1] = gp[i].pos[0];
-	    gp[i].pos[0] = hold;
+  for(i=0;i<nsph;i++){
+    if(direction==1){
+      hold = gp[i].pos[2];
+      gp[i].pos[2] = gp[i].pos[1];
+      gp[i].pos[1] = gp[i].pos[0];
+      gp[i].pos[0] = hold;
       
-	    hold = gp[i].vel[2];
-	    gp[i].vel[2] = gp[i].vel[1];
-	    gp[i].vel[1] = gp[i].vel[0];
-	    gp[i].vel[0] = hold;
-	    ri++;
-	  }
+      hold = gp[i].vel[2];
+      gp[i].vel[2] = gp[i].vel[1];
+      gp[i].vel[1] = gp[i].vel[0];
+      gp[i].vel[0] = hold;
+      ri++;
+    }
     
-	  if(direction==0){
-	    hold = gp[i].pos[0];
-	    gp[i].pos[0] = gp[i].pos[1];
-	    gp[i].pos[1] = gp[i].pos[2];
-	    gp[i].pos[2] = hold;
+    if(direction==0){
+      hold = gp[i].pos[0];
+      gp[i].pos[0] = gp[i].pos[1];
+      gp[i].pos[1] = gp[i].pos[2];
+      gp[i].pos[2] = hold;
       
-	    hold = gp[i].vel[0];
-	    gp[i].vel[0] = gp[i].vel[1];
-	    gp[i].vel[1] = gp[i].vel[2];
-	    gp[i].vel[2] = hold;
-	    ri++;
-	  }
-	}
-	fprintf(stderr,"Physically rotated %d particles, because direction= %d\n", ri, direction);
-	return(ri);
-      }
+      hold = gp[i].vel[0];
+      gp[i].vel[0] = gp[i].vel[1];
+      gp[i].vel[1] = gp[i].vel[2];
+      gp[i].vel[2] = hold;
+      ri++;
+    }
+  }
+  fprintf(stderr,"Physically rotated %d particles, because direction= %d\n", ri, direction);
+  return(ri);
+}
 
-      void io_error_msg(char *errmsg){
-	fprintf(stderr, "Run-time Error. %s\n", errmsg);
-	exit(5431);
-      }
+void io_error_msg(char *errmsg){
+  fprintf(stderr, "Run-time Error. %s\n", errmsg);
+  exit(5431);
+}

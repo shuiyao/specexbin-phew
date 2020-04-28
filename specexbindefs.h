@@ -1,5 +1,7 @@
 typedef float Real;
 
+#define FOLDER_IONS "/scratch/shuiyao/specexbin/ionfiles/"
+
 #define NDIM		3
 #define BOXSIZE         1.0
 #define HALFBOX         0.5
@@ -45,45 +47,6 @@ typedef float Real;
 
 /* Ion lookup table definitions */
 #include "iontab.h"
-
-/* struct opt_tau { */
-/*   float z; */
-/*   float rho; */
-/*   float temp; */
-/*   float metals[NIONS]; */
-/*   float ions[NIONS]; */
-/* } ; */
-
-/* struct dark_particle { */
-/*     Real mass; */
-/*     Real pos[NDIM]; */
-/*     Real vel[NDIM]; */
-/*     Real eps; */
-/*     Real phi ; */
-/* } ; */
-/* struct dark_particle dp[1]; */
-
-/* struct star_particle { */
-/*     Real mass; */
-/*     Real pos[NDIM]; */
-/*     Real vel[NDIM]; */
-/*   //    Real metals[NMETALS] ; */
-/*     Real metals; */
-/*     Real tform ; */
-/*     Real eps; */
-/*     Real phi ; */
-/* } ; */
-/* struct star_particle sp[1]; */
-
-/* struct dump { */
-/*   double time ; */
-/*   int nbodies ; */
-/*   int ndim ; */
-/*   int nsph ; */
-/*   int ndark ; */
-/*   int nstar ; */
-/* } ; */
-/* struct dump header ; */
 
 struct spec_particle {
   int ID;

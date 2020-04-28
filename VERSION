@@ -6,6 +6,7 @@ Major Updates:
   - contsmoothspec.c: vstep
   - Enabling hdf5 format
   - Replace defs.h with specexbindefs.h
+  - Use new specions_i9_gizmo.dat file because now we have yield for Ne and Mg
 
 200427
 ----------------------------------------------------------------

@@ -33,7 +33,7 @@ int InitIons()
   int load_fraction_tables();
   FILE *specfile;
 
-  sprintf(prefix,"/home/shuiyao/temp/specexbin/ionfiles/");
+  sprintf(prefix, FOLDER_IONS);
   /* nvbins = floor(nzbins/(VRES/ZRES)) + NVBINS_ADVANCED; */
   nvbins = floor(nzbins/(VRES/ZRES));
 
@@ -57,7 +57,11 @@ int InitIons()
   sprintf(specionfilename,"%sspecions_i6.dat",prefix);
 #else
 #ifdef DO9IONS
+#ifdef HDF5FORMAT
+  sprintf(specionfilename,"%sspecions_i9_gizmo.dat",prefix);
+#else 
   sprintf(specionfilename,"%sspecions_i9.dat",prefix);
+#endif
 #else
 #ifdef DOXRAYIONS
   sprintf(specionfilename,"%sspecions_xray.dat",prefix);
@@ -68,7 +72,11 @@ int InitIons()
 #ifdef DOHIZIONS
   sprintf(specionfilename,"%sspecions_hiz.dat",prefix);
 #else
+#ifdef HDF5FORMAT
+  sprintf(specionfilename,"%sspecions_i31_gizmo.dat",prefix);
+#else
   sprintf(specionfilename,"%sspecions_i31.dat",prefix);
+#endif
 #endif
 #endif
 #endif

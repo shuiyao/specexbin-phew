@@ -222,7 +222,7 @@ void load_fraction_tables()
   char fname1[80],fname2[80],prefix[50];
   char suffix[12];
   
-	sprintf(prefix,"/home/shuiyao/temp/specexbin/ionfiles/");
+	sprintf(prefix, FOLDER_IONS);
 #ifdef DOC4ONLY
 	sprintf(suffix,"_c4");
 #else
