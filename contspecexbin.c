@@ -109,6 +109,8 @@ int main(int argc,char **argv)
 #ifdef SHORTSPEC
   double hold;
   FILE *LOSfile;
+#else
+  int i;
 #endif
 
 #if defined(PART_BY_PART) && defined(PHEW)

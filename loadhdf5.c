@@ -19,12 +19,12 @@
 
 static long NumPart;
 
-double unit_Time;
-double unit_Length;
-double unit_Density;
-double unit_Mass;
-double unit_Velocity;
-double unit_Temp;
+double unit_Tipsy_Time;
+double unit_Tipsy_Length;
+double unit_Tipsy_Density;
+double unit_Tipsy_Mass;
+double unit_Tipsy_Velocity;
+double unit_Tipsy_Temp;
 
 struct particle_data *P;
 struct gadget_header gheader;
@@ -34,16 +34,16 @@ void tipsyunits(void)
   double HubbleParam, BoxSize;
   HubbleParam = gheader.HubbleParam;
   BoxSize = gheader.BoxSize;
-  unit_Time=sqrt(8*M_PI/3)*CM_PER_MPC/(100*HubbleParam*1.e5);
-  unit_Density=1.8791E-29*HubbleParam*HubbleParam;
-  unit_Length=BoxSize*CM_PER_MPC*1.e-3;
-  unit_Mass=unit_Density*unit_Length*unit_Length*unit_Length/(HubbleParam*HubbleParam);
-  unit_Velocity=unit_Length/unit_Time;
-  unit_Temp = pow(UNIT_V, 2);
-  fprintf(stdout, "unit_Length = %g\n", unit_Length);
-  fprintf(stdout, "unit_Mass = %g\n", unit_Mass);
-  fprintf(stdout, "unit_Velocity = %g\n", unit_Velocity);
-  // = pow(UNIT_L, 2) / pow((UNIT_L/Unit_V), 2); 
+  unit_Tipsy_Time=sqrt(8*M_PI/3)*CM_PER_MPC/(100*HubbleParam*1.e5);
+  unit_Tipsy_Density=1.8791E-29*HubbleParam*HubbleParam;
+  unit_Tipsy_Length=BoxSize*CM_PER_MPC*1.e-3;
+  unit_Tipsy_Mass=unit_Tipsy_Density*unit_Tipsy_Length*unit_Tipsy_Length*unit_Tipsy_Length/(HubbleParam*HubbleParam);
+  unit_Tipsy_Velocity=unit_Tipsy_Length/unit_Tipsy_Time;
+  unit_Tipsy_Temp = pow(UNIT_V, 2);
+  fprintf(stdout, "unit_Tipsy_Length = %g\n", unit_Tipsy_Length);
+  fprintf(stdout, "unit_Tipsy_Mass = %g\n", unit_Tipsy_Mass);
+  fprintf(stdout, "unit_Tipsy_Velocity = %g\n", unit_Tipsy_Velocity);
+  // = pow(UNIT_TIPSY_L, 2) / pow((UNIT_TIPSY_L/Unit_Tipsy_V), 2); 
   return;
 }
 

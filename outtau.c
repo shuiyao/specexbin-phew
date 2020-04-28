@@ -33,7 +33,7 @@ int OutTau()
 #ifndef OUTPUT_LOCAL_FOLDER
   char longfname[400];
   char spec_dir[100];
-  strcpy(spec_dir, "/scratch/shuiyao/los/");
+  strcpy(spec_dir, FOLDER_OUTPUT);
 #endif
 
 #ifndef SHORTSPEC

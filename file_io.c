@@ -106,7 +106,7 @@ int Open_Snapshot(char *snapname){
   int Rotate90Box();
 
 #ifdef HDF5FORMAT
-  tipsyunits();
+  // Do Nothing
 #else
   sprintf(binname,"%s.bin",snapname);
   if( (binfile = fopen(binname,"r")) == NULL ) {
@@ -134,29 +134,31 @@ int Open_Snapshot(char *snapname){
 
   nsph = load_hdf5(snapname, 0);
   // NOTE: read_hdf5 should automatically load global variable gheader and *P
+  tipsyunits(); // Need gheader from HDF5 file
+  gp = malloc(sizeof(struct spec_particle)*nsph);
 
   for(i=0; i < nsph ; i++){
-    gp[i].mass = P[i].Mass * UNIT_M / unit_Mass;
+    gp[i].mass = P[i].Mass * UNIT_M / unit_Tipsy_Mass;
     for(j=0;j<MAXDIM;j++){
-      gp[i].pos[j] = P[i].Pos[j] * UNIT_L / unit_Length - 0.5;
+      gp[i].pos[j] = P[i].Pos[j] * UNIT_L / unit_Tipsy_Length - 0.5;
       if(gp[i].pos[j] >= 0.5) gp[i].pos[j] = 0.499999;
       if(gp[i].pos[j] <= -0.5) gp[i].pos[j] = -0.499999;
-      gp[i].vel[j] = P[i].Vel[j] * UNIT_V / unit_Velocity / sqrt(gheader.time);
+      gp[i].vel[j] = P[i].Vel[j] * UNIT_V / unit_Tipsy_Velocity / sqrt(gheader.time);
 #ifdef VELOCITY_UNIT_CORRECTION
       gp[i].vel[j] = gp[i].vel[j] * gheader.HubbleParam;
 #endif
       // note: vel_corr = sqrt(a^3) / h; vel /= vel_corr; but when converting from hdf5 to tipsy, I ignore the *= sqrt(a^3) factor, which is canceled out.
     } // j
-    gp[i].rho = P[i].Rho * UNIT_M / (pow(UNIT_L, 3) * unit_Density);
+    gp[i].rho = P[i].Rho * UNIT_M / (pow(UNIT_L, 3) * unit_Tipsy_Density);
 #ifdef DENSITY_H2_FACTOR
     gp[i].rho = gp[i].rho * gheader.HubbleParam * gheader.HubbleParam;
 #endif
 
     MeanWeight = (1 + 4 * XHE) / (1 + P[i].Ne + XHE);
-    gp[i].temp = P[i].Temp * unit_Temp;
+    gp[i].temp = P[i].Temp * unit_Tipsy_Temp;
     gp[i].temp *= GAMMAM1 * MeanWeight * MHYDR / KBOLTZ;
 
-    gp[i].hsmooth = P[i].Hsml * UNIT_L / unit_Length * 0.5;
+    gp[i].hsmooth = P[i].Hsml * UNIT_L / unit_Tipsy_Length * 0.5;
 #ifdef QUINTIC_KERNEL
     gp[i].hsmooth = gp[i].hsmooth / 1.2275;
 #endif

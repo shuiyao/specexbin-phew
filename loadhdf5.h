@@ -10,12 +10,12 @@
 #define UNIT_M 1.989e43
 
 /* Variables */
-extern double unit_Time;
-extern double unit_Length;
-extern double unit_Density;
-extern double unit_Mass;
-extern double unit_Velocity;
-extern double unit_Temp;
+extern double unit_Tipsy_Time;
+extern double unit_Tipsy_Length;
+extern double unit_Tipsy_Density;
+extern double unit_Tipsy_Mass;
+extern double unit_Tipsy_Velocity;
+extern double unit_Tipsy_Temp;
 
 struct gadget_header
 {

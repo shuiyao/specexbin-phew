@@ -2,19 +2,19 @@
 OPT     +=  -DHDF5FORMAT # See appendix. on the metallicity fields
 
 OPT     +=  -DDENSITY_H2_FACTOR
-OPT	+=  -DOUTPUT_LOCAL_FOLDER
+#OPT	+=  -DOUTPUT_LOCAL_FOLDER
 OPT	+=  -DQUINTIC_KERNEL
 OPT	+=  -DVELOCITY_UNIT_CORRECTION
 
-# OPT	+=  -DPART_BY_PART # Mutually exclusive with PHEW
+OPT	+=  -DPART_BY_PART # Mutually exclusive with PHEW
 # OPT	+=  -DSINGLE_VOFFSET_PER_PARTICLE # Not recommended. The Pygad way.
 
-OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
+#OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
 # OPT	+=  -DPHEW_MOREINFO
 # OPT	+=  -DPHEW_VERBOSE=1
-OPT	+=  -DPHEW_HSMOOTH
-OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
-OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
+#OPT	+=  -DPHEW_HSMOOTH
+#OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
+#OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
 
 #OPT	+=  -DNO_WIND_NGB_STAT
 #OPT    +=  -DVARYGALBKG
@@ -41,7 +41,7 @@ OPT     +=  -DDOHM12
 #OPT     +=  -DSMOOTHSPH
 #OPT     +=  -DVARGALBKGD
 #OPT	+=  -DMETALFLOOR
-OPT     +=  -DSHORTSPEC
+#OPT     +=  -DSHORTSPEC
 #OPT     +=  -DTEMPOVER105
 #OPT	+=  -DTEMPOVER1052
 #OPT     +=  -DNHLIMIT
@@ -58,18 +58,18 @@ OPT     +=  -DINTKERNELNHLIMIT
 #OPT	+=  -DOWLSFORMAT
 
 ifeq (HDF5FORMAT,$(findstring HDF5FORMAT,$(OPT)))
-	# HDF5_INCL = -I/usr/include/hdf5/serial -DH5_USE_16_API
-	# HDF5_LIBS = -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_serial -lz
-	HDF5_LIBS= -lhdf5
+	HDF5_INCL = -I/usr/include/hdf5/serial -DH5_USE_16_API
+	HDF5_LIBS = -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_serial -lz
+	# HDF5_LIBS= -lhdf5
 endif
 
 CC= gcc
 FC= f77
 CLINK=gcc
 FLINK=f77
-GSL_INCL=-I/home/shuiyao/include
-GSL_LIBS=-L/home/shuiyao/lib
-CFLAGS= ${OPT} -g $(GSL_INCL) $(HDF5_INCL) -O2
+GSL_INCL=-I/home/shuiyao/local/include
+GSL_LIBS=-L/home/shuiyao/local/lib
+CFLAGS= ${OPT} -g $(GSL_INCL) $(HDF5_INCL) #-O2 -fPIC -shared
 FFLAGS= -O
 CLIB= -lm -lgsl -lgslcblas $(GSL_LIBS) $(HDF5_LIBS)
 FLIB= 
