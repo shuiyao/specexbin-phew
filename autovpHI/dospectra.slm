@@ -1,0 +1,10 @@
+#!/bin/csh -f
+#SBATCH -o out-%j-%N
+#SBATCH -e err-%j-%N
+#SBATCH -p opteron
+#SBATCH -J HI
+#SBATCH --nodes=1
+#SBATCH --time=72:00:00
+
+cd /scratch/shuiyao/los/p50n288o5pp/autovpHI/
+bash dospectra_nocorr.sh    

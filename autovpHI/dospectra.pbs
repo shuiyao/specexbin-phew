@@ -1,0 +1,16 @@
+# This is based on Mark Fardal's run.pbs
+# This line to test whether symlink works
+
+#!/bin/csh -f
+#PBS -l nodes=1:ppn=16
+#PBS -q opteron
+#PBS -l walltime=72:00:00
+#PBS -N dospectra
+
+qalter -N `basename $PBS_O_WORKDIR` $PBS_JOBID
+
+pbsdsh -u /bin/hostname
+
+cd $PBS_O_WORKDIR
+bash dospectra.sh
+
