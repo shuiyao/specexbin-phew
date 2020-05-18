@@ -157,6 +157,8 @@ int Open_Snapshot(char *snapname){
     MeanWeight = (1 + 4 * XHE) / (1 + P[i].Ne + XHE);
     gp[i].temp = P[i].Temp * unit_Tipsy_Temp;
     gp[i].temp *= GAMMAM1 * MeanWeight * MHYDR / KBOLTZ;
+    if(i<5)
+      fprintf(stdout, "gp[%d].temp = %g\n", i, gp[i].temp);
 
     gp[i].hsmooth = P[i].Hsml * UNIT_L / unit_Tipsy_Length * 0.5;
 #ifdef QUINTIC_KERNEL

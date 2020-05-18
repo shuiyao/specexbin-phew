@@ -122,7 +122,7 @@ int OutTau()
   } // while(redshift_track>redshift_begin-0.01)
   fclose(outfile); // specztau or specaim
 
-#ifdef PHEW
+#ifdef PHEW_CLOUDS
   // The format is exactly the same as specztau or specaim. Only contains wind information
 #ifdef SHORTSPEC
   sprintf(fname,"specaimc.%s.%s",sim_id,namesuffix);
@@ -219,6 +219,7 @@ int OutTau()
       /* Convert rho to overdensities for output */
       rhomean = XH*1.88e-29*Omega_b*h*h/(aex*aex*aex);
       for(k=-1; k<nions; k++) {
+#ifndef PHEW_CLOUDS	
 	if(k==-1){
           IonTotal.rhocbins[i] = log10(IonTotal.rhocbins[i]/rhomean);
           IonTotal.tcbins[i] = log10(IonTotal.tcbins[i]);
@@ -232,6 +233,7 @@ int OutTau()
 	  if(isnan(Ion[k].Zcbins[i]) || isinf(Ion[k].Zcbins[i])) Ion[k].Zcbins[i] = 0.0;
 	  if(isnan(Ion[k].vcbins[i]) || isinf(Ion[k].vcbins[i])) Ion[k].vcbins[i] = 0.0;
 	}
+#endif	
 	if(k==-1){
 	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhocbins[i],IonTotal.tcbins[i],IonTotal.Zcbins[i]);
 	}else{

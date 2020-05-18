@@ -385,7 +385,6 @@ int ContSmoothSpec()
 	  fprintf(partfile," %5.3f %6.4e\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0)); 
 #endif
 
-
 	  bin_min = binarysearch((zcoord - zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
 	  bin_max = binarysearch((zcoord + zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
 #ifdef SINGLE_VOFFSET_PER_PARTICLE	  
@@ -751,7 +750,7 @@ int ContSmoothSpec()
 		  } 
 		  else{
 		    if(Zcol<-1){
-		      Zcloud = colcloud * (cp->metals[1]);
+o		      Zcloud = colcloud * (cp->metals[1]);
 		      Zcloud *= I.fraction/0.009618*pow(10,I.alpha); /* 2-11-10 */
 		    }
 		    else

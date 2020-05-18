@@ -113,10 +113,6 @@ int main(int argc,char **argv)
   int i;
 #endif
 
-#if defined(PART_BY_PART) && defined(PHEW)
-  fprintf(stderr, "ERROR: PART_BY_PART and PHEW are mutually exclusive!! QUIT!\n");
-  exit(-1);
-#endif
 #if defined(HDF5FORMAT) && defined(METALFLOOR)
   fprintf(stderr, "ERROR: HDF5FORMAT and METALFLOOR are mutually exclusive!! QUIT!\n");
   exit(-1);
