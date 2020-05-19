@@ -138,7 +138,6 @@ int ContSmoothSpec()
   ionfrac = (float *) malloc(nions*sizeof(float));
   //#endif
 
-#ifndef PIPELINE
 #ifdef SHORTSPEC
   sprintf(binname,"binzfile.%s.%s",sim_id,namesuffix);
   sprintf(partname,"partzfile.%s.%s",sim_id,namesuffix);
@@ -176,8 +175,7 @@ int ContSmoothSpec()
   fprintf(binfile,"# xbegin = % 7.5f ybegin = % 7.5f zbegin = % 7.5f theta = %7.3f phi = %7.3f\n",xbegin,ybegin,zbegin,theta*180.0/PI,phi*180.0/PI);
   fprintf(stderr,"bin_size[0] = %5.3e nzbins = %d zlength %5.3e\n",bin_size[0],nzbins,zlength);
 
-#endif
-#endif
+#endif // SHORTSPEC
 
   //zout = redshift_hold;
 #ifdef PART_BY_PART
@@ -378,12 +376,10 @@ int ContSmoothSpec()
 	  printf("iZ= %3d jZ= %3d rho= % 5.3e temp= % 5.3e metals= % 5.3e %5.3e %5.3e %5.3e\n",iZ,jZ,log10(cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR),log10(cp->temp),cp->metals[0],cp->metals[1],cp->metals[2],cp->metals[3]);
 #endif
 
-#ifndef PIPELINE
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e %6.4e %6.4e %6.4e %6.4e ",cp->mass, cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR, cp->temp, cp->metals[0], cp->metals[1], cp->metals[2], cp->hsmooth);
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->pos[0],cp->pos[1],cp->pos[2]);
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->vel[0],cp->vel[1],cp->vel[2]);
 	  fprintf(partfile," %5.3f %6.4e\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0)); 
-#endif
 
 	  bin_min = binarysearch((zcoord - zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
 	  bin_max = binarysearch((zcoord + zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
@@ -471,7 +467,7 @@ int ContSmoothSpec()
 #endif // TEMPOVER105 Off
 #endif // VARGALBKGD Off
 #endif // NONEQUIL && DO6ION Off
-	  }
+	  } // LOOP: n ions
 
 	  if((bin_min <= 0 && bin_max == 0) || (bin_min >= nzbins-1 && bin_max >= nzbins-1)) continue;
 
@@ -750,7 +746,7 @@ int ContSmoothSpec()
 		  } 
 		  else{
 		    if(Zcol<-1){
-o		      Zcloud = colcloud * (cp->metals[1]);
+		      Zcloud = colcloud * (cp->metals[1]);
 		      Zcloud *= I.fraction/0.009618*pow(10,I.alpha); /* 2-11-10 */
 		    }
 		    else
