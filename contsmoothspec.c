@@ -749,7 +749,10 @@ int ContSmoothSpec()
 		  prob1 = nc_bin * exp(-nc_bin); // k=1 term of the Poisson distribution
 		  prob2 = nc_bin * nc_bin * exp(-nc_bin) / 2.0; // k=1 term of the Poisson distribution
 		  // Write prob0, prob1, prob2 to the partzfile ...
-		  random_number = get_random_number(cp->idx + 12);
+		  /* random_number = get_random_number(cp->idx + 12); */
+		  /* idx+12 is not a good seed because it will be the same for a PhEW particle. Physically, the chance of hitting a cloud in each zbin should be calculated independently */
+		  random_number = get_random_number(cp->idx + (int)(nc_bin * 10000));
+		  
 		  if(random_number < prob2) nc_hits = 2.0;
 		  else if(random_number < prob1) nc_hits = 1.0;
 		  else nc_hits = 0.0;
