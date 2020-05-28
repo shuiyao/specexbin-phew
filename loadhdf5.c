@@ -346,7 +346,7 @@ int load_hdf5(char *basename, int itype)
     H5Dread(hdf5_dataset, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, single);
     H5Dclose(hdf5_dataset);
     for(i=ngas, cnt=0; i<gheader.npart[0]+ngas; i++){
-      P[i].Mcloud = single[cnt];
+      P[i].Rcloud = single[cnt];
       cnt += 1;
     }
     hdf5_dataset = H5Dopen1(hdf5_grp, "PhEWWindMass");

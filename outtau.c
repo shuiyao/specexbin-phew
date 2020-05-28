@@ -44,13 +44,7 @@ int OutTau()
   jname = floor(redshift_end*100+0.0001);
 #endif
 
-#ifdef PIPELINE
-  if(theta>0){
-    sprintf(fname,"spectau.%s.%d.z%d_%d",sim_id,iname,jname,kname);
-  }else{
-    sprintf(fname,"spectau.%s.%s.z%d_%d",sim_id,id,jname,kname);
-  }
-#else
+#ifndef PART_BY_PART
 #ifdef SHORTSPEC
   sprintf(fname,"specaim.%s.%s",sim_id,namesuffix);
 #else
@@ -59,7 +53,6 @@ int OutTau()
   }else{
     sprintf(fname,"specztau.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
-#endif
 #endif
 
 #ifdef OUTPUT_LOCAL_FOLDER
@@ -106,73 +99,7 @@ int OutTau()
 	if(k==-1){
 	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhobins[i],IonTotal.tbins[i],IonTotal.Zbins[i]);
 	}else{
-#ifdef PIPELINE
-	  fprintf(outfile, "%5.3e ",Ion[k].vbins[i]);
-#else
 	  fprintf(outfile, "% 5.2f %5.2f %5.3e %5.3e ", Ion[k].rhobins[i],Ion[k].tbins[i],Ion[k].Zbins[i],Ion[k].vbins[i]);
-#endif
-	}
-      }
-#ifndef PIPELINE
-      fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]);
-#endif
-      fprintf(outfile,"\n");
-    }
-    i++;
-  } // while(redshift_track>redshift_begin-0.01)
-  fclose(outfile); // specztau or specaim
-
-#ifdef PHEW_CLOUDS
-  // The format is exactly the same as specztau or specaim. Only contains wind information
-#ifdef SHORTSPEC
-  sprintf(fname,"specaimc.%s.%s",sim_id,namesuffix);
-#else
-  if(theta>0){
-    sprintf(fname,"specztauc.%s.%d.%d_%d",sim_id,iname,jname,kname);
-  }else{
-    sprintf(fname,"specztauc.%s.%s.%d_%d",sim_id,id,jname,kname);
-  }
-#endif
-#ifdef OUTPUT_LOCAL_FOLDER
-  outfile = fopen(fname,"w");
-#else
-  strcat(strcpy(longfname, spec_dir), fname);
-  outfile = fopen(longfname,"w");
-#endif
-
-  fprintf(stderr,"Outputting in Spectau (Clouds)!!!!\n");
-  i = 0;
-  redshift_track = IonTotal.redshift[0];
-  while(redshift_track>redshift_begin-0.01){
-    redshift_track -= vres;
-    //fprintf(stderr,"redshift_track = %f redshift_begin = %f redshift_end = %f\n",redshift_track,redshift_begin,redshift_end);
-    if( redshift_track > redshift_begin && redshift_track < redshift_end){
-      fprintf(outfile, "%10.7f ",redshift_track);
-#ifdef SHORTSPEC
-      cosmopar(CosmicTime(redshift_center));
-#else
-      cosmopar(CosmicTime(redshift_track));
-#endif
-      /* Convert rho to overdensities for output */
-      rhomean = XH*1.88e-29*Omega_b*h*h/(aex*aex*aex);
-      for(k=-1; k<nions; k++) {
-	if(k==-1){
-          IonTotal.rhocbins[i] = log10(IonTotal.rhocbins[i]/rhomean);
-          IonTotal.tcbins[i] = log10(IonTotal.tcbins[i]);
-	  if(isnan(IonTotal.rhocbins[i]) || isinf(IonTotal.rhocbins[i])) IonTotal.rhocbins[i] = 0.0;
-	  if(isnan(IonTotal.tcbins[i]) || isinf(IonTotal.tcbins[i])) IonTotal.tcbins[i] = 0.0;
-	}else{
-	  Ion[k].rhocbins[i] = log10(Ion[k].rhocbins[i]/rhomean);
-	  Ion[k].tcbins[i] = log10(Ion[k].tcbins[i]);
-	  if(isnan(Ion[k].rhocbins[i]) || isinf(Ion[k].rhocbins[i])) Ion[k].rhocbins[i] = 0.0;
-	  if(isnan(Ion[k].tcbins[i]) || isinf(Ion[k].tcbins[i])) Ion[k].tcbins[i] = 0.0;
-	  /* if(isnan(Ion[k].Zcbins[i]) || isinf(Ion[k].Zcbins[i])) Ion[k].Zcbins[i] = 0.0; */
-	  if(isnan(Ion[k].vcbins[i]) || isinf(Ion[k].vcbins[i])) Ion[k].vcbins[i] = 0.0;
-	}
-	if(k==-1){
-	  fprintf(outfile, "% 6.3f %6.3f 0.0 ", IonTotal.rhocbins[i],IonTotal.tcbins[i]);
-	}else{
-	  fprintf(outfile, "% 5.2f %5.2f 0.0 %5.3e ", Ion[k].rhocbins[i],Ion[k].tcbins[i],Ion[k].vcbins[i]);
 	}
       }
       fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]);
@@ -181,7 +108,10 @@ int OutTau()
     i++;
   } // while(redshift_track>redshift_begin-0.01)
   fclose(outfile); // specztau or specaim
-#endif // PHEW
+#endif // #ifndef PART_BY_PART
+
+  /* <<<<<<<< SMOOTH METHOD */
+  /* >>>>>>>> P-P METHOD */
 
 #ifdef PART_BY_PART 
   // The format is exactly the same as specztau or specaim. Only contains wind information
@@ -219,7 +149,6 @@ int OutTau()
       /* Convert rho to overdensities for output */
       rhomean = XH*1.88e-29*Omega_b*h*h/(aex*aex*aex);
       for(k=-1; k<nions; k++) {
-#ifndef PHEW_CLOUDS	
 	if(k==-1){
           IonTotal.rhocbins[i] = log10(IonTotal.rhocbins[i]/rhomean);
           IonTotal.tcbins[i] = log10(IonTotal.tcbins[i]);
@@ -233,17 +162,11 @@ int OutTau()
 	  if(isnan(Ion[k].Zcbins[i]) || isinf(Ion[k].Zcbins[i])) Ion[k].Zcbins[i] = 0.0;
 	  if(isnan(Ion[k].vcbins[i]) || isinf(Ion[k].vcbins[i])) Ion[k].vcbins[i] = 0.0;
 	}
-#endif	
 	if(k==-1){
 	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhocbins[i],IonTotal.tcbins[i],IonTotal.Zcbins[i]);
 	}else{
 	  fprintf(outfile, "% 5.2f %5.2f %5.3e %5.3e ", Ion[k].rhocbins[i],Ion[k].tcbins[i],Ion[k].Zcbins[i],Ion[k].vcbins[i]);
 	}
-      /* if(k == 0) */
-      /* 	if(Ion[k].vcbins[i] < 0.0 || (Ion[k].vcbins[i] > 0.0 && Ion[k].vcbins[i] < 1.e-30)){ */
-      /* 	  fprintf(stderr, "STRANGE BIN: Ion[0].vcbins[%d] = %g\n", */
-      /* 		  i, Ion[0].vcbins[i]); */
-      /* 	} */
       }
       fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]);
       fprintf(outfile,"\n");

@@ -118,6 +118,12 @@ int main(int argc,char **argv)
   exit(-1);
 #endif
 
+#if defined(PHEW) && !defined(PART_BY_PART)
+  fprintf(stderr, "ERROR: PART_BY_PART is required by PHEW!! QUIT!\n");
+  exit(-1);
+#endif
+
+
   zres = ZRES;
   vres = VRES;
 

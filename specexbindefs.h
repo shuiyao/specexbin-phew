@@ -75,6 +75,7 @@ struct spec_particle {
   int idx;
   int wind_flag;
   Real rcloud;
+  Real mcloud;
   Real ncloud;
 #endif  
 };

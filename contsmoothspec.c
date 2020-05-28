@@ -63,15 +63,22 @@ int ContSmoothSpec()
 #endif
   double zcoord;
   double rhocgs;
-#ifndef PIPELINE
+
   FILE *binfile, *partfile;
   char binname[80], partname[80];
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  FILE *phewsfile;
+  char phewsname[80];
+#endif  
 #ifndef OUTPUT_LOCAL_FOLDER
   char longbinname[400], longpartname[400];
   char spec_dir[100];
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  char longphewsname[400];  
+#endif  
   strcpy(spec_dir, FOLDER_OUTPUT);
 #endif
-#endif
+
   float IonFrac(),*ionfrac;
   int load_fraction_tables();
   double ion_weight;
@@ -115,6 +122,8 @@ int ContSmoothSpec()
   double prob0, prob1, prob2;
   double nc_bin;
   float nc_this_bin;
+  float random_number;
+  float nc_hits;
 #endif
 
   //k = floor((redshift_low-delta_redshift+0.01)*100+0.0001);
@@ -141,14 +150,24 @@ int ContSmoothSpec()
 #ifdef SHORTSPEC
   sprintf(binname,"binzfile.%s.%s",sim_id,namesuffix);
   sprintf(partname,"partzfile.%s.%s",sim_id,namesuffix);
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  sprintf(phewsname,"phewszfile.%s.%s",sim_id,namesuffix);
+#endif  
 #ifdef OUTPUT_LOCAL_FOLDER
   binfile = fopen(binname,"w");
   partfile = fopen(partname,"w");
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  phewsfile = fopen(phewsname,"w");
+#endif  
 #else
   strcat(strcpy(longbinname, spec_dir), binname);
   strcat(strcpy(longpartname, spec_dir), partname);
   binfile = fopen(longbinname,"w");
   partfile = fopen(longpartname,"w");
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  strcat(strcpy(longphewsname, spec_dir), phewsname);
+  phewsfile = fopen(longphewsname,"w");
+#endif  
 #endif
   fprintf(partfile,"#count = %d\n",count);
 #else // SHORTSPEC = OFF
@@ -162,14 +181,28 @@ int ContSmoothSpec()
   }else{
     sprintf(partname,"partzfile.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  if(theta>0){
+    sprintf(phewsname,"phewszfile.%s.%d.%d_%d",sim_id,iname,jname,kname);
+  }else{
+    sprintf(phewsname,"phewszfile.%s.%s.%d_%d",sim_id,id,jname,kname);
+  }
+#endif  
 #ifdef OUTPUT_LOCAL_FOLDER
   binfile = fopen(binname,"a");
   partfile = fopen(partname,"a");
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  phewsfile = fopen(phewsname,"a");  
+#endif  
 #else
   strcat(strcpy(longbinname, spec_dir), binname);
   strcat(strcpy(longpartname, spec_dir), partname);
   binfile = fopen(longbinname,"a");
   partfile = fopen(longpartname,"a");
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+  strcat(strcpy(longphewsname, spec_dir), phewsname);  
+  phewsfile = fopen(longphewsname,"a");  
+#endif  
 #endif
 
   fprintf(binfile,"# xbegin = % 7.5f ybegin = % 7.5f zbegin = % 7.5f theta = %7.3f phi = %7.3f\n",xbegin,ybegin,zbegin,theta*180.0/PI,phi*180.0/PI);
@@ -290,7 +323,7 @@ int ContSmoothSpec()
   /* ++++++++++++++++ MAIN LOOP BEGINS ++++++++++++++++ */
   for (i = 0 ;i < count ;i++) {
     cp = spec_particles+i;
-#ifdef PHEW
+#if defined(PHEW) && defined(PHEW_IGNORE_PHEWS)
     if(cp->wind_flag) continue;
 #endif
     for(irep[0] = -1; irep[0] <= 1; irep[0]++) {
@@ -375,11 +408,18 @@ int ContSmoothSpec()
 	  }
 	  printf("iZ= %3d jZ= %3d rho= % 5.3e temp= % 5.3e metals= % 5.3e %5.3e %5.3e %5.3e\n",iZ,jZ,log10(cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR),log10(cp->temp),cp->metals[0],cp->metals[1],cp->metals[2],cp->metals[3]);
 #endif
-
+#ifdef HDF5FORMAT
+	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e %6.4e %6.4e %6.4e %6.4e ",cp->mass, cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR, cp->temp, cp->metals[2], cp->metals[4], cp->metals[7], cp->hsmooth);
+#else
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e %6.4e %6.4e %6.4e %6.4e ",cp->mass, cp->rho*XH*unit_Density/(aex*aex*aex)/MHYDR, cp->temp, cp->metals[0], cp->metals[1], cp->metals[2], cp->hsmooth);
+#endif	  
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->pos[0],cp->pos[1],cp->pos[2]);
 	  fprintf(partfile,"% 6.4e % 6.4e % 6.4e ",cp->vel[0],cp->vel[1],cp->vel[2]);
-	  fprintf(partfile," %5.3f %6.4e\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0)); 
+#ifdef PHEW	  
+	  fprintf(partfile," %5.3f %6.4e %d\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0), cp->wind_flag);
+#else
+	  fprintf(partfile," %5.3f %6.4e\n", redshift, IonFrac(cp->temp,cp->rho*XH*unit_Density/(aex*aex*aex),0));	  
+#endif	  
 
 	  bin_min = binarysearch((zcoord - zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
 	  bin_max = binarysearch((zcoord + zo*cp->hsmooth - zbeginline),bin_coord,nzbins);
@@ -702,7 +742,24 @@ int ContSmoothSpec()
 	    // ----------------------------------------------------------------
 	    // ---------------- PART_BY_PART = ON ----------------
 	    // ----------------------------------------------------------------
-
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+		if(cp -> wind_flag > 0){ // A PhEW particle
+		  nc_bin = kernel * cp->ncloud * (PI * cp->rcloud * cp->rcloud); // kernel has been normalized by PI * h^2
+		  /* prob0 = exp(-nc_bin); // k=0 term of the Poisson distribution */
+		  prob1 = nc_bin * exp(-nc_bin); // k=1 term of the Poisson distribution
+		  prob2 = nc_bin * nc_bin * exp(-nc_bin) / 2.0; // k=1 term of the Poisson distribution
+		  // Write prob0, prob1, prob2 to the partzfile ...
+		  random_number = get_random_number(cp->idx + 12);
+		  if(random_number < prob2) nc_hits = 2.0;
+		  else if(random_number < prob1) nc_hits = 1.0;
+		  else nc_hits = 0.0;
+		  fprintf(phewsfile, "%5.3f %7.5f %6.1f %5.3e %5.3e %5.3e %5.3e %f\n",
+			  cp->mcloud, cp->delaytime,
+			  cp->ncloud, cp->rcloud, cp->hsmooth,
+			  prob1, prob2, nc_hits
+			  );
+		}
+#endif		
 		// **************** Construction Begin ... ****************
 		// hubble_expansion and cosmopar() are already defined before, like normal SPH particles.
 		for(ionid = -1; ionid < nions; ionid ++){
@@ -736,7 +793,14 @@ int ContSmoothSpec()
 		  } // IF: Zcol ==/</> -1
 		    // note ionfrac[k] is calculated independently for each cp
 
-		  colcloud = kernel * ion_weight * cp->mass;
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
+		  if(cp -> wind_flag > 0)
+		    colcloud = nc_hits * cp->rho * 4. / 3. * cp->rcloud * ion_weight;
+		  else
+		    colcloud = kernel * ion_weight * cp->mass;
+#else
+		    colcloud = kernel * ion_weight * cp->mass;		  
+#endif		  
 		  rhocloud = colcloud * cp->rho * XH * unit_Density / (aex * aex * aex);
 		  tcloud = colcloud * cp->temp;
 		  Zcloud = 0.0;
@@ -907,16 +971,15 @@ int ContSmoothSpec()
 #endif
 
     } // nzloopbins <= i < nzloopbins + nzbins
-#ifndef PIPELINE
     fprintf(binfile,"# edge redshift = %9.7f hold_coord = %10.7f\n",IonTotal.redshift[nzloopbins+nzbins-1],hold_coord);
-#endif
 
     hold_coord += bin_coord[nzbins-1]+bin_size[nzbins-1];
 
-#ifndef PIPELINE
     fclose(binfile);
     fclose(partfile);
-#endif
+#if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)    
+    fclose(phewsfile);
+#endif      
 
 #ifndef SHORTSPEC
     free(bin_size);

@@ -179,14 +179,17 @@ int Open_Snapshot(char *snapname){
     gp[i].wind_flag = (P[i].Mcloud > 0) ? 1 : 0;
     if(gp[i].wind_flag){ // Surely a PhEW particle
       gp[i].idx = i; // Debug
-      gp[i].rcloud = P[i].Rcloud;
+      gp[i].rcloud = P[i].Rcloud * UNIT_L / unit_Tipsy_Length;
+      gp[i].mcloud = P[i].Mcloud;
 #ifdef PHEW_RCLOUD_CORRECTION 
       gp[i].rcloud /= (gheader.time * gheader.time);
-#endif	  
+#endif
+      gp[i].delaytime = P[i].LastSFTime;
 #ifdef PHEW_NCLOUD	  
       gp[i].ncloud = PHEW_NCLOUD;
 #else
-      gp[i].ncloud = 0;
+      gp[i].ncloud = P[i].Mass * UNIT_M / gheader.HubbleParam /
+	(PHEW_MC_INIT * P[i].Mcloud);
 #endif
 #ifdef PHEW_HSMOOTH
       gp[i].hsmooth = gp[i].hsmooth / 5.04;
@@ -198,6 +201,7 @@ int Open_Snapshot(char *snapname){
       gp[i].idx = -1;
       gp[i].rcloud = 0.0;
       gp[i].ncloud = 0.0;
+      gp[i].mcloud = 0.0;
     }
 #endif    // PHEW
   } // i loop: 0 ~ nsph
