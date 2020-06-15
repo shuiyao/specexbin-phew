@@ -189,7 +189,7 @@ int Open_Snapshot(char *snapname){
       gp[i].ncloud = PHEW_NCLOUD;
 #else
       gp[i].ncloud = P[i].Mass * UNIT_M / gheader.HubbleParam /
-	(PHEW_MC_INIT * P[i].Mcloud);
+	(phew_mcinit * P[i].Mcloud);
 #endif
 #ifdef PHEW_HSMOOTH
       gp[i].hsmooth = gp[i].hsmooth / 5.04;

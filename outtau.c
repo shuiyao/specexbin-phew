@@ -114,7 +114,6 @@ int OutTau()
   /* >>>>>>>> P-P METHOD */
 
 #ifdef PART_BY_PART 
-  // The format is exactly the same as specztau or specaim. Only contains wind information
 #ifdef SHORTSPEC
   sprintf(fname,"specaimw.%s.%s",sim_id,namesuffix);
 #else
@@ -131,7 +130,71 @@ int OutTau()
   outfile = fopen(longfname,"w");
 #endif
 
-  fprintf(stderr,"Outputting in Spectau (Winds)!!!!\n");
+  fprintf(stderr,"Outputting in Spectau (P-P)!!!!\n");
+  i = 0;
+  redshift_track = IonTotal.redshift[0];
+  while(redshift_track>redshift_begin-0.01){
+    redshift_track -= vres;
+    //fprintf(stderr,"redshift_track = %f redshift_begin = %f redshift_end = %f\n",redshift_track,redshift_begin,redshift_end);
+    if( redshift_track > redshift_begin && redshift_track < redshift_end){
+      /* Only write within the z boundary. (Exclude z < 0 for example) */
+      fprintf(outfile, "%10.7f ",redshift_track);
+      /* fprintf(outfile, "%d ",i); */
+#ifdef SHORTSPEC
+      cosmopar(CosmicTime(redshift_center));
+#else
+      cosmopar(CosmicTime(redshift_track));
+#endif
+      /* Convert rho to overdensities for output */
+      rhomean = XH*1.88e-29*Omega_b*h*h/(aex*aex*aex);
+      for(k=-1; k<nions; k++) {
+	if(k==-1){
+          IonTotal.rhoabins[i] = log10(IonTotal.rhoabins[i]/rhomean);
+          IonTotal.tabins[i] = log10(IonTotal.tabins[i]);
+	  if(isnan(IonTotal.rhoabins[i]) || isinf(IonTotal.rhoabins[i])) IonTotal.rhoabins[i] = 0.0;
+	  if(isnan(IonTotal.tabins[i]) || isinf(IonTotal.tabins[i])) IonTotal.tabins[i] = 0.0;
+	}else{
+	  Ion[k].rhoabins[i] = log10(Ion[k].rhoabins[i]/rhomean);
+	  Ion[k].tabins[i] = log10(Ion[k].tabins[i]);
+	  if(isnan(Ion[k].rhoabins[i]) || isinf(Ion[k].rhoabins[i])) Ion[k].rhoabins[i] = 0.0;
+	  if(isnan(Ion[k].tabins[i]) || isinf(Ion[k].tabins[i])) Ion[k].tabins[i] = 0.0;
+	  if(isnan(Ion[k].Zabins[i]) || isinf(Ion[k].Zabins[i])) Ion[k].Zabins[i] = 0.0;
+	  if(isnan(Ion[k].vabins[i]) || isinf(Ion[k].vabins[i])) Ion[k].vabins[i] = 0.0;
+	}
+	if(k==-1){
+	  fprintf(outfile, "% 6.3f %6.3f %5.3e ", IonTotal.rhoabins[i],IonTotal.tabins[i],IonTotal.Zabins[i]);
+	}else{
+	  fprintf(outfile, "% 5.2f %5.2f %5.3e %5.3e ", Ion[k].rhoabins[i],Ion[k].tabins[i],Ion[k].Zabins[i],Ion[k].vabins[i]);
+	}
+      }
+      /* fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]); */
+      fprintf(outfile,"\n");
+    }
+    i++;
+  } // while(redshift_track>redshift_begin-0.01)
+  fclose(outfile); // specztau or specaim
+  fprintf(stderr, "SUCCESSFUL! Done Writting....\n");
+#endif // PART_BY_PART
+
+#ifdef PHEW
+  // The format is exactly the same as specztau or specaim. Only contains cloud information
+#ifdef SHORTSPEC
+  sprintf(fname,"specaimc.%s.%s",sim_id,namesuffix);
+#else
+  if(theta>0){
+    sprintf(fname,"specztauc.%s.%d.%d_%d",sim_id,iname,jname,kname);
+  }else{
+    sprintf(fname,"specztauc.%s.%s.%d_%d",sim_id,id,jname,kname);
+  }
+#endif
+#ifdef OUTPUT_LOCAL_FOLDER
+  outfile = fopen(fname,"w");
+#else
+  strcat(strcpy(longfname, spec_dir), fname);
+  outfile = fopen(longfname,"w");
+#endif
+
+  fprintf(stderr,"Outputting in Spectau (Clouds)!!!!\n");
   i = 0;
   redshift_track = IonTotal.redshift[0];
   while(redshift_track>redshift_begin-0.01){
@@ -168,14 +231,14 @@ int OutTau()
 	  fprintf(outfile, "% 5.2f %5.2f %5.3e %5.3e ", Ion[k].rhocbins[i],Ion[k].tcbins[i],Ion[k].Zcbins[i],Ion[k].vcbins[i]);
 	}
       }
-      fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]);
+      /* fprintf(outfile,"% 7.5f % 7.5f % 7.5f",IonExtra.xbins[i],IonExtra.ybins[i],IonExtra.zbins[i]); */
       fprintf(outfile,"\n");
     }
     i++;
   } // while(redshift_track>redshift_begin-0.01)
-  fclose(outfile); // specztau or specaim
+  fclose(outfile); // specztauc or specaimc
   fprintf(stderr, "SUCCESSFUL! Done Writting....\n");
-#endif // PART_BY_PART
+#endif // PHEW
 
   return 0;
 }

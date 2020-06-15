@@ -10,13 +10,12 @@ OPT	+=  -DPART_BY_PART # Mutually exclusive with PHEW
 # OPT	+=  -DSINGLE_VOFFSET_PER_PARTICLE # Not recommended. The Pygad way.
 
 OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
-# OPT     +=  -DPHEW_IGNORE_PHEWS
+#OPT     +=  -DPHEW_IGNORE_PHEWS
 # OPT	+=  -DPHEW_MOREINFO
 # OPT	+=  -DPHEW_VERBOSE=1
 #OPT	+=  -DPHEW_HSMOOTH
 #OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
 #OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
-OPT     +=  -DPHEW_MC_INIT=2.e38 # initial cloud mass
 
 #OPT	+=  -DNO_WIND_NGB_STAT
 #OPT    +=  -DVARYGALBKG

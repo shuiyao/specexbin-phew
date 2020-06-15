@@ -122,16 +122,12 @@ int InitIons()
       Ion[i].vcbins = malloc(nvbins*sizeof(double));
       Ion[i].tcbins = malloc(nvbins*sizeof(double));
       Ion[i].rhocbins = malloc(nvbins*sizeof(double));
-      Ion[i].Zcbins = malloc(nvbins*sizeof(double));      
+      Ion[i].Zcbins = malloc(nvbins*sizeof(double));
+      Ion[i].vabins = malloc(nvbins*sizeof(double));
+      Ion[i].tabins = malloc(nvbins*sizeof(double));
+      Ion[i].rhoabins = malloc(nvbins*sizeof(double));
+      Ion[i].Zabins = malloc(nvbins*sizeof(double));      
 #endif      
-#ifdef PHYSSPEC
-      Ion[i].sfrbins = malloc(nvbins*sizeof(double));
-      Ion[i].mgalbins = malloc(nvbins*sizeof(double));
-      Ion[i].dgalbins = malloc(nvbins*sizeof(double));
-      Ion[i].agebins = malloc(nvbins*sizeof(double));
-      Ion[i].nrecbins = malloc(nvbins*sizeof(double));
-      Ion[i].vlaunchbins = malloc(nvbins*sizeof(double));
-#endif
     }
     IonTotal.mass = malloc(nzbins*sizeof(double));
     IonTotal.vel = malloc(nzbins*sizeof(double));
@@ -158,16 +154,12 @@ int InitIons()
     IonTotal.vcbins = malloc(nvbins*sizeof(double));
     IonTotal.tcbins = malloc(nvbins*sizeof(double));
     IonTotal.rhocbins = malloc(nvbins*sizeof(double));
-    IonTotal.Zcbins = malloc(nvbins*sizeof(double));    
+    IonTotal.Zcbins = malloc(nvbins*sizeof(double));
+    IonTotal.vabins = malloc(nvbins*sizeof(double));
+    IonTotal.tabins = malloc(nvbins*sizeof(double));
+    IonTotal.rhoabins = malloc(nvbins*sizeof(double));
+    IonTotal.Zabins = malloc(nvbins*sizeof(double));    
 #endif      
-#ifdef PHYSSPEC
-    IonTotal.sfrbins = malloc(nvbins*sizeof(double));
-    IonTotal.mgalbins = malloc(nvbins*sizeof(double));
-    IonTotal.dgalbins = malloc(nvbins*sizeof(double));
-    IonTotal.agebins = malloc(nvbins*sizeof(double));
-    IonTotal.nrecbins = malloc(nvbins*sizeof(double));
-    IonTotal.vlaunchbins = malloc(nvbins*sizeof(double));
-#endif
     IonExtra.redshift = malloc(nvbins*sizeof(double));
     IonExtra.x = malloc(nzbins*sizeof(double));
     IonExtra.y = malloc(nzbins*sizeof(double));
@@ -185,15 +177,6 @@ int InitIons()
       Ion[i].temp = realloc(Ion[i].temp,(nzloopbins+nzbins)*sizeof(double));
       Ion[i].rho = realloc(Ion[i].rho,(nzloopbins+nzbins)*sizeof(double));
       for(j=0;j<NMETALS;j++)Ion[i].metals[j] = realloc(Ion[i].metals[j],(nzloopbins+nzbins)*sizeof(double));
-#ifdef PHYSSPEC
-      Ion[i].sfr = realloc(Ion[i].sfr,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].wtmass = realloc(Ion[i].wtmass,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].mgal = realloc(Ion[i].mgal,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].dgal = realloc(Ion[i].dgal,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].age = realloc(Ion[i].age,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].nrec = realloc(Ion[i].nrec,(nzloopbins+nzbins)*sizeof(double));
-      Ion[i].vlaunch = realloc(Ion[i].vlaunch,(nzloopbins+nzbins)*sizeof(double));
-#endif
       Ion[i].vbins = realloc(Ion[i].vbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].tbins = realloc(Ion[i].tbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].rhobins = realloc(Ion[i].rhobins,(nvloopbins+nvbins)*sizeof(double));
@@ -202,31 +185,18 @@ int InitIons()
       Ion[i].vcbins = realloc(Ion[i].vcbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].tcbins = realloc(Ion[i].tcbins,(nvloopbins+nvbins)*sizeof(double));
       Ion[i].rhocbins = realloc(Ion[i].rhocbins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].Zcbins = realloc(Ion[i].Zcbins,(nvloopbins+nvbins)*sizeof(double));      
+      Ion[i].Zcbins = realloc(Ion[i].Zcbins,(nvloopbins+nvbins)*sizeof(double));
+      Ion[i].vabins = realloc(Ion[i].vabins,(nvloopbins+nvbins)*sizeof(double));
+      Ion[i].tabins = realloc(Ion[i].tabins,(nvloopbins+nvbins)*sizeof(double));
+      Ion[i].rhoabins = realloc(Ion[i].rhoabins,(nvloopbins+nvbins)*sizeof(double));
+      Ion[i].Zabins = realloc(Ion[i].Zabins,(nvloopbins+nvbins)*sizeof(double));      
 #endif      
-#ifdef PHYSSPEC
-      Ion[i].sfrbins = realloc(Ion[i].sfrbins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].mgalbins = realloc(Ion[i].mgalbins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].dgalbins = realloc(Ion[i].dgalbins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].agebins = realloc(Ion[i].agebins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].nrecbins = realloc(Ion[i].nrecbins,(nvloopbins+nvbins)*sizeof(double));
-      Ion[i].vlaunchbins = realloc(Ion[i].vlaunchbins,(nvloopbins+nvbins)*sizeof(double));
-#endif
     }
     IonTotal.mass = realloc(IonTotal.mass,(nzloopbins+nzbins)*sizeof(double));
     IonTotal.vel = realloc(IonTotal.vel,(nzloopbins+nzbins)*sizeof(double));
     IonTotal.temp = realloc(IonTotal.temp,(nzloopbins+nzbins)*sizeof(double));
     IonTotal.rho = realloc(IonTotal.rho,(nzloopbins+nzbins)*sizeof(double));
     for(j=0;j<NMETALS;j++)IonTotal.metals[j] = realloc(IonTotal.metals[j],(nzloopbins+nzbins)*sizeof(double));
-#ifdef PHYSSPEC
-    IonTotal.sfr = realloc(IonTotal.sfr,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.wtmass = realloc(IonTotal.wtmass,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.mgal = realloc(IonTotal.mgal,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.dgal = realloc(IonTotal.dgal,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.age = realloc(IonTotal.age,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.nrec = realloc(IonTotal.nrec,(nzloopbins+nzbins)*sizeof(double));
-    IonTotal.vlaunch = realloc(IonTotal.vlaunch,(nzloopbins+nzbins)*sizeof(double));
-#endif
     IonTotal.redshift = realloc(IonTotal.redshift,(nzloopbins+nzbins)*sizeof(double));
     IonTotal.binsize = realloc(IonTotal.binsize,(nzloopbins+nzbins)*sizeof(double));
     IonTotal.bincoord = realloc(IonTotal.bincoord,(nzloopbins+nzbins)*sizeof(double));
@@ -237,7 +207,11 @@ int InitIons()
     IonTotal.vcbins = realloc(IonTotal.vcbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.tcbins = realloc(IonTotal.tcbins,(nvloopbins+nvbins)*sizeof(double));
     IonTotal.rhocbins = realloc(IonTotal.rhocbins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.Zcbins = realloc(IonTotal.Zcbins,(nvloopbins+nvbins)*sizeof(double));    
+    IonTotal.Zcbins = realloc(IonTotal.Zcbins,(nvloopbins+nvbins)*sizeof(double));
+    IonTotal.vabins = realloc(IonTotal.vabins,(nvloopbins+nvbins)*sizeof(double));
+    IonTotal.tabins = realloc(IonTotal.tabins,(nvloopbins+nvbins)*sizeof(double));
+    IonTotal.rhoabins = realloc(IonTotal.rhoabins,(nvloopbins+nvbins)*sizeof(double));
+    IonTotal.Zabins = realloc(IonTotal.Zabins,(nvloopbins+nvbins)*sizeof(double));    
 #endif      
     IonTotal.Zbins = realloc(IonTotal.Zbins,(nvloopbins+nvbins)*sizeof(double));
     IonExtra.redshift = realloc(IonExtra.redshift,(nvloopbins+nvbins)*sizeof(double));
@@ -248,31 +222,27 @@ int InitIons()
     IonExtra.ybins = realloc(IonExtra.ybins,(nvloopbins+nvbins)*sizeof(double));
     IonExtra.zbins = realloc(IonExtra.zbins,(nvloopbins+nvbins)*sizeof(double));
     IonExtra.gal_field = realloc(IonExtra.gal_field,(nvloopbins+nvbins)*sizeof(double));
-#ifdef PHYSSPEC
-    IonTotal.sfrbins = realloc(IonTotal.sfrbins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.mgalbins = realloc(IonTotal.mgalbins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.dgalbins = realloc(IonTotal.dgalbins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.agebins = realloc(IonTotal.agebins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.nrecbins = realloc(IonTotal.nrecbins,(nvloopbins+nvbins)*sizeof(double));
-    IonTotal.vlaunchbins = realloc(IonTotal.vlaunchbins,(nvloopbins+nvbins)*sizeof(double));
-#endif
   } 
 
 #if defined(PHEW) || defined(PART_BY_PART)
   if(nvloopbins == NVBINS_ADVANCED) // First call
     for( i=0; i<nvloopbins; i++ ){
       IonTotal.vcbins[i] = IonTotal.tcbins[i] = IonTotal.rhocbins[i] = IonTotal.Zcbins[i] = 0.0;
+      IonTotal.vabins[i] = IonTotal.tabins[i] = IonTotal.rhoabins[i] = IonTotal.Zabins[i] = 0.0;      
       for(j=0;j<MAXIONS;j++){
 	Ion[j].vcbins[i] = Ion[j].tcbins[i] = Ion[j].rhocbins[i] = Ion[j].Zcbins[i] = 0.0;
+	Ion[j].vabins[i] = Ion[j].tabins[i] = Ion[j].rhoabins[i] = Ion[j].Zabins[i] = 0.0;
       }
     }
   for( i=nvloopbins; i<nvloopbins+nvbins; i++ ){
     IonTotal.vcbins[i] = IonTotal.tcbins[i] = IonTotal.rhocbins[i] = IonTotal.Zcbins[i] = 0.0;
+    IonTotal.vabins[i] = IonTotal.tabins[i] = IonTotal.rhoabins[i] = IonTotal.Zabins[i] = 0.0;    
     for(j=0;j<MAXIONS;j++){
       Ion[j].vcbins[i] = Ion[j].tcbins[i] = Ion[j].rhocbins[i] = Ion[j].Zcbins[i] = 0.0;
+      Ion[j].vabins[i] = Ion[j].tabins[i] = Ion[j].rhoabins[i] = Ion[j].Zabins[i] = 0.0; 
     }
   }
-  fprintf(stderr, "=== Update Ion.vcbins From %d to %d ===\n", nvloopbins, nvloopbins+nvbins);
+  fprintf(stderr, "=== Update Ion.vcbins/vabins From %d to %d ===\n", nvloopbins, nvloopbins+nvbins);
 #endif
   
   i = 0;
@@ -314,7 +284,11 @@ void FreeIons(void)
     free(Ion[i].vcbins);
     free(Ion[i].rhocbins);
     free(Ion[i].tcbins);
-    free(Ion[i].Zcbins);        
+    free(Ion[i].Zcbins);
+    free(Ion[i].vabins);
+    free(Ion[i].rhoabins);
+    free(Ion[i].tabins);
+    free(Ion[i].Zabins);        
 #endif    
   }
   free(IonTotal.mass);
@@ -332,7 +306,11 @@ void FreeIons(void)
   free(IonTotal.vcbins);
   free(IonTotal.rhocbins);
   free(IonTotal.tcbins);
-  free(IonTotal.Zcbins);      
+  free(IonTotal.Zcbins);
+  free(IonTotal.vabins);
+  free(IonTotal.rhoabins);
+  free(IonTotal.tabins);
+  free(IonTotal.Zabins);      
 #endif    
   free(IonTotal.Zbins);
   free(IonExtra.redshift);

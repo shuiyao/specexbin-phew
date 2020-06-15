@@ -457,7 +457,12 @@ int Tau()
       if(IonTotal.vcbins[i] > 0){
 	IonTotal.tcbins[i] /= IonTotal.vcbins[i];
 	IonTotal.rhocbins[i] /= IonTotal.vcbins[i];
-	IonTotal.Zcbins[i] /= IonTotal.vcbins[i];	
+	IonTotal.Zcbins[i] /= IonTotal.vcbins[i];
+      }
+      if(IonTotal.vabins[i] > 0){      
+	IonTotal.tabins[i] /= IonTotal.vabins[i];
+	IonTotal.rhoabins[i] /= IonTotal.vabins[i];
+	IonTotal.Zabins[i] /= IonTotal.vabins[i];	
       }
       unit_col = Ion[0].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
       // Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
@@ -465,12 +470,20 @@ int Tau()
       IonTotal.vcbins[i] *= 0.0122;
       IonTotal.vcbins[i] *= unit_col;
       IonTotal.vcbins[i] *= unit_Mass/Ion[0].atomwt;
+      IonTotal.vabins[i] *= 0.0122;
+      IonTotal.vabins[i] *= unit_col;
+      IonTotal.vabins[i] *= unit_Mass/Ion[0].atomwt;
       
       for(k = 0; k < nions; k++){
 	if(Ion[k].vcbins[i] > 0){
 	  Ion[k].tcbins[i] /= Ion[k].vcbins[i];
 	  Ion[k].rhocbins[i] /= Ion[k].vcbins[i];
-	  Ion[k].Zcbins[i] /= Ion[k].vcbins[i];	  
+	  Ion[k].Zcbins[i] /= Ion[k].vcbins[i];
+	}
+	if(Ion[k].vabins[i] > 0){
+	  Ion[k].tabins[i] /= Ion[k].vabins[i];
+	  Ion[k].rhoabins[i] /= Ion[k].vabins[i];
+	  Ion[k].Zabins[i] /= Ion[k].vabins[i];	  
 	}
 	unit_col = Ion[k].Xsec/(vbin_size[i]) /(aex*aex*unit_Length*unit_Length) /MHYDR;
 	// Xsec contains oscillator strength and lambda!! from col3 of the specions_*.dat
@@ -479,6 +492,9 @@ int Tau()
 	if(Ion[k].Zcolumn == -1) Ion[k].vcbins[i] *= Ion[k].fraction;
 	Ion[k].vcbins[i] *= unit_col;
 	Ion[k].vcbins[i] *= unit_Mass/Ion[k].atomwt;
+	if(Ion[k].Zcolumn == -1) Ion[k].vabins[i] *= Ion[k].fraction;
+	Ion[k].vabins[i] *= unit_col;
+	Ion[k].vabins[i] *= unit_Mass/Ion[k].atomwt;
       }
     }  
 #endif  // PHEW

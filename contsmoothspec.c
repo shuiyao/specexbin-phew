@@ -878,24 +878,28 @@ int ContSmoothSpec()
 			}
 		      }
 		      if(colcloud > 0){
-			I.vcbins[vbin] += dvcol*colcloud; // The I.fraction is moved to tau.c
-
-			if(I.vcbins[vbin] < 0.0 && ionid == 0){
-			  fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g %g %g %g\n",
-				  I.vcbins[vbin], vbin,
-				  vcloud, voffset[bin+nzloopbins], colcloud, dvcol,
-				  vbin_min, vbin_max, vbin_coord[vbin], vbin_coord[vbin+1],
-				  vlower, vupper);
+			if(cp -> wind_flag > 0){ // A PhEW particle
+			  I.vcbins[vbin] += dvcol*colcloud;
+			  I.rhocbins[vbin] += dvcol*rhocloud;
+			  I.tcbins[vbin] += dvcol*tcloud;
+			  I.Zcbins[vbin] += dvcol*Zcloud;			
 			}
-
-			// ionfrac (but not necessarily atomic fraction) is already in the colcloud
-			I.rhocbins[vbin] += dvcol*rhocloud;
-			I.tcbins[vbin] += dvcol*tcloud;
-			I.Zcbins[vbin] += dvcol*Zcloud;			
-			// norm[bin] = I.vcbins[bin]
-			// These bins are in v-space
-			/* fprintf(stderr, "I[%d]: %d %g %g %g %g %g %g\n", */
-			/* 	  ionid, vbin, I.vcbins[vbin], I.tcbins[vbin], I.rhocbins[vbin], dvcol, vlower, vupper); */
+			else { // A non-PhEW (ambient) particle
+			  I.vabins[vbin] += dvcol*colcloud; // The I.fraction is moved to tau.c
+			  if(I.vabins[vbin] < 0.0 && ionid == 0){
+			    fprintf(stderr, "z: %g %d %g %g %g %g %d %d %g %g %g %g\n",
+				    I.vabins[vbin], vbin,
+				    vcloud, voffset[bin+nzloopbins], colcloud, dvcol,
+				    vbin_min, vbin_max, vbin_coord[vbin], vbin_coord[vbin+1],
+				    vlower, vupper);
+			  }
+			  // ionfrac (but not necessarily atomic fraction) is already in the colcloud
+			  I.rhoabins[vbin] += dvcol*rhocloud;
+			  I.tabins[vbin] += dvcol*tcloud;
+			  I.Zabins[vbin] += dvcol*Zcloud;			
+			  // norm[bin] = I.vabins[bin]
+			  // These bins are in v-space
+			} // cp->wind_flag > 0
 		      } // colcloud > 0
 		    } // bin_min < bin < bin_max
 #ifdef SHORTSPEC

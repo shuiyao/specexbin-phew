@@ -9,7 +9,10 @@
 #define  RNDTABLE 32768
 extern double RndTable[RNDTABLE];
 extern gsl_rng *random_generator;	/*!< the random number generator used */
-#endif
+
+extern double phew_mcinit; 	/* Initialized in cmd */
+#endif // PHEW
+
 //extern struct gas_particle *spec_particles;
 char sim_id[20];
 extern struct spec_particle *gp;

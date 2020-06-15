@@ -85,6 +85,7 @@ double rhoZ, tempZ, rhoTZ[120][70][4],Z[4];
 #ifdef PHEW
 double RndTable[RNDTABLE];
 gsl_rng *random_generator;
+double phew_mcinit;
 
 double get_random_number(unsigned int id)
 {
@@ -170,6 +171,9 @@ int main(int argc,char **argv)
   sscanf(argv[4],"%lg",&boxsize) ;
   sscanf(argv[5],"%lg",&flux_fac);
   sscanf(argv[6],"%lg",&theta) ;
+#ifdef PHEW
+  sscanf(argv[7],"%lg",&phew_mcinit) ;  
+#endif  
 #endif
   totMass = 0.30; //0.28; //0.238; //0.28;
   Lambda = 0.70; //0.72; //0.762; //0.72;

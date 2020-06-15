@@ -103,6 +103,10 @@ typedef struct ionStruct {
   double *tcbins;
   double *rhocbins;
   double *Zcbins;
+  double *vabins;
+  double *tabins;
+  double *rhoabins;
+  double *Zabins;
 #endif
   float lambda,fraction,Xsec,atomwt,bsys,alpha;
   int Zcolumn;
