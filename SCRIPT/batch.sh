@@ -1,17 +1,15 @@
 #!/bin/bash
-#parallel contspecexbin_v8 {1} {2} {3} {4} {5} {6} ::: snap_p50n288ezw15 ::: 0.0 ::: 6.0 ::: 50.0 ::: 1.0 :::: angles_10_24
 
-modelname=l50n288-phewoff
-zbeg=0.0
-zend=0.5
-lbox=50.0
-ftau=1.0
-mc=2.e37 # PhEW Cloud Mass
+model="l25n288-phew-m4"
 
-cd .. 
-while read line 
-do
-    echo "./contspecexbin "$modelname $zbeg $zend $lbox $ftau $line
-    # gdb --args ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line
-    ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line $mc
-done < "angles.dat"
+if [ -e ../$model.tab ]; then
+    sbatch $model"_10-20.slm"
+    sbatch $model"_20-30.slm"
+    sbatch $model"_30-40.slm"
+    sbatch $model"_40-50.slm"
+    sbatch $model"_50-60.slm"
+    sbatch $model"_60-70.slm"
+    sbatch $model"_70-80.slm"
+else
+    echo "../"$model".tab Not Found."
+fi

@@ -195,7 +195,12 @@ int main(int argc,char **argv)
   set_random_numbers();
 #endif
 
-  if(argc>7){
+#ifdef PHEW  
+  if(argc>8)
+#else
+  if(argc>7)
+#endif
+    {
     fprintf(stderr,"Using input xspec yspec zspec\n");
     sscanf(argv[7],"%lg",&xspec);
     sscanf(argv[8],"%lg",&yspec);
