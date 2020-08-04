@@ -40,9 +40,12 @@ void tipsyunits(void)
   unit_Tipsy_Mass=unit_Tipsy_Density*unit_Tipsy_Length*unit_Tipsy_Length*unit_Tipsy_Length/(HubbleParam*HubbleParam);
   unit_Tipsy_Velocity=unit_Tipsy_Length/unit_Tipsy_Time;
   unit_Tipsy_Temp = pow(UNIT_V, 2);
+  fprintf(stdout, "--------------------------------\n");  
   fprintf(stdout, "unit_Tipsy_Length = %g\n", unit_Tipsy_Length);
   fprintf(stdout, "unit_Tipsy_Mass = %g\n", unit_Tipsy_Mass);
   fprintf(stdout, "unit_Tipsy_Velocity = %g\n", unit_Tipsy_Velocity);
+  fprintf(stdout, "--------------------------------\n");    
+  fflush(stdout);
   // = pow(UNIT_TIPSY_L, 2) / pow((UNIT_TIPSY_L/Unit_Tipsy_V), 2); 
   return;
 }

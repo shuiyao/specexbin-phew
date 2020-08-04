@@ -8,10 +8,9 @@ zend=0.5
 lbox=50.0
 ftau=1.0
 
-cd .. 
 while read line 
 do
     echo "./contspecexbin "$modelname $zbeg $zend $lbox $ftau $line $mcinit
     # gdb --args ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line
     ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line $mcinit
-done < "angles_10_20.dat"
+done < "angles/angles_10_20.dat"

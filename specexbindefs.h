@@ -1,7 +1,12 @@
 typedef float Real;
 
 #define FOLDER_IONS "/scratch/shuiyao/specexbin/ionfiles/"
+
+#ifdef SHORTSPEC
+#define FOLDER_OUTPUT "/proj/shuiyao/los/shortlos/temp/"
+#else
 #define FOLDER_OUTPUT "/proj/shuiyao/los/"
+#endif
 
 #define NDIM		3
 #define BOXSIZE         1.0

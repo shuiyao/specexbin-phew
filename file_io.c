@@ -181,9 +181,6 @@ int Open_Snapshot(char *snapname){
       gp[i].idx = i; // Debug
       gp[i].rcloud = P[i].Rcloud * UNIT_L / unit_Tipsy_Length;
       gp[i].mcloud = P[i].Mcloud;
-#ifdef PHEW_RCLOUD_CORRECTION 
-      gp[i].rcloud /= (gheader.time * gheader.time);
-#endif
       gp[i].delaytime = P[i].LastSFTime;
 #ifdef PHEW_NCLOUD	  
       gp[i].ncloud = PHEW_NCLOUD;

@@ -2,7 +2,7 @@
 touch diff.txt
 set basename1 = `pwd`
 #set basename2 = "../gizmo-mufasa-phew/"
-set basename2 = "../specexbin_phew/"
+set basename2 = "../specexbin-phew-shortlos/"
 set list = `ls ./* | grep '\.c'`
 @ Nfiles = $#list
 @ i = 0

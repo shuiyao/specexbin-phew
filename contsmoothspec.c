@@ -12,7 +12,7 @@
 #include "tipsydefs.h"
 #else
 #ifdef HDF5FORMAT 
-#include "hdf5.h"
+#include "loadhdf5.h"
 #endif // HDF5FORMAT
 #endif // TIPSYFORMAT
 
@@ -34,10 +34,17 @@ extern double unit_Mass,unit_Velocity,unit_Length,unit_Density;
 float KernIntTable[NINTERP+1][2];
 #endif
 
+#define DMAX(x, y) (((x) > (y)) ? (x) : (y))
+#define DMIN(x, y) (((x) > (y)) ? (y) : (x))
+
 #define clight		2.99792458e10
 #define KPC 3.086e21
 
 float findrandgauss();
+
+#ifdef PHEW
+double find_column_density_for_ion(int ionid, int seed);
+#endif
 
 int ContSmoothSpec()
 {
@@ -74,7 +81,7 @@ int ContSmoothSpec()
   char longbinname[400], longpartname[400];
   char spec_dir[100];
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
-  char longphewsname[400];  
+  char longphewsname[400];
 #endif  
   strcpy(spec_dir, FOLDER_OUTPUT);
 #endif
@@ -124,6 +131,10 @@ int ContSmoothSpec()
   float nc_this_bin;
   float random_number;
   float nc_hits;
+  double equiv_area; // The scaled-up/down area of a cloudlet
+  double ycorr; // Correction of N and area based on viewing angle
+  double col_corr; // Total correction factor for column density
+  double unit_Column_Density = unit_Mass / (unit_Length * unit_Length);
 #endif
 
   //k = floor((redshift_low-delta_redshift+0.01)*100+0.0001);
@@ -201,7 +212,7 @@ int ContSmoothSpec()
   partfile = fopen(longpartname,"a");
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   strcat(strcpy(longphewsname, spec_dir), phewsname);  
-  phewsfile = fopen(longphewsname,"a");  
+  phewsfile = fopen(longphewsname,"a");
 #endif  
 #endif
 
@@ -744,7 +755,16 @@ int ContSmoothSpec()
 	    // ----------------------------------------------------------------
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
 		if(cp -> wind_flag > 0){ // A PhEW particle
-		  nc_bin = kernel * cp->ncloud * (PI * cp->rcloud * cp->rcloud); // kernel has been normalized by PI * h^2
+		  ycorr = DMAX(sqrt(1.0 - vz * vz / (cp->vel[0]*cp->vel[0] + cp->vel[1]*cp->vel[1] + cp->vel[2]*cp->vel[2])), (2.37/6.61)*(2.37/6.61));
+		  // cos(alpha) = |vz / v|, alpha is the angle between LoS and v
+		  
+		  equiv_area = ycorr * PI * (6.61 * cp->rcloud) * (6.61 * cp->rcloud);
+		  // In the reference simulation, the covering area of the cloud in perpendicular view is PI * (6.61 Rc) ** 2. In that simulation, Rc ~ 20 pc. The covering area in parallel view is PI * (2.37 Rc) ** 2. The covering area is quite close for different ions.
+		  col_corr = (cp->mcloud * phew_mcinit / 6.7e37) /
+		    pow((cp->rcloud / (0.02 * UNIT_L / unit_Tipsy_Length)), 2.0) / ycorr;
+		  // 6.7e37 = 0.5 * 6.7e4 * Msolar
+		  
+		  nc_bin = kernel * cp->ncloud * equiv_area; // kernel has been normalized by PI * h^2
 		  /* prob0 = exp(-nc_bin); // k=0 term of the Poisson distribution */
 		  prob1 = nc_bin * exp(-nc_bin); // k=1 term of the Poisson distribution
 		  prob2 = nc_bin * nc_bin * exp(-nc_bin) / 2.0; // k=1 term of the Poisson distribution
@@ -756,9 +776,10 @@ int ContSmoothSpec()
 		  if(random_number < prob2) nc_hits = 2.0;
 		  else if(random_number < prob1) nc_hits = 1.0;
 		  else nc_hits = 0.0;
-		  fprintf(phewsfile, "%5.3f %7.5f %6.1f %5.3e %5.3e %5.3e %5.3e %f\n",
+		  fprintf(phewsfile, "%5.3f %7.5f %6.1f %5.3e %5.3e %5.3e %5.3e %5.3e %5.3e %f\n",
 			  cp->mcloud, cp->delaytime,
 			  cp->ncloud, cp->rcloud, cp->hsmooth,
+			  ycorr, col_corr,
 			  prob1, prob2, nc_hits
 			  );
 		}
@@ -797,8 +818,13 @@ int ContSmoothSpec()
 		    // note ionfrac[k] is calculated independently for each cp
 
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
-		  if(cp -> wind_flag > 0)
-		    colcloud = nc_hits * cp->rho * 4. / 3. * cp->rcloud * ion_weight;
+		  if(cp -> wind_flag > 0){
+		    // Each Particle has a unique random_number
+		    colcloud = find_column_density_for_ion(ionid, (int)(random_number*14397));
+		    colcloud *= col_corr * nc_hits * MHYDR * I.atomwt / unit_Column_Density;
+		    if(Zcol > 0) colcloud *= (cp->metals[Zcol] / I.fraction);
+		  }
+		    /* colcloud = nc_hits * cp->rho * 4. / 3. * cp->rcloud * ion_weight; */
 		  else
 		    colcloud = kernel * ion_weight * cp->mass;
 #else
@@ -878,7 +904,12 @@ int ContSmoothSpec()
 			}
 		      }
 		      if(colcloud > 0){
-			if(cp -> wind_flag > 0){ // A PhEW particle
+#ifdef PHEW			
+			if(cp -> wind_flag > 0)  // A PhEW particle
+#else
+			if(1 < 0) // Not PhEW, this is not happening
+#endif			 
+			{
 			  I.vcbins[vbin] += dvcol*colcloud;
 			  I.rhocbins[vbin] += dvcol*rhocloud;
 			  I.tcbins[vbin] += dvcol*tcloud;
@@ -926,9 +957,6 @@ int ContSmoothSpec()
     } // FOR: 0 < i < count
   /* ---------------- MAIN LOOP ENDS ---------------- */
 
-    //fprintf(binfile,"# MIN z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[nzloopbins],bin_redshift[nzloopbins],IonTotal.vel[nzloopbins],IonTotal.temp[nzloopbins],IonTotal.rho[nzloopbins],IonTotal.metals[0][nzloopbins],IonTotal.mass[nzloopbins]);
-    //fprintf(binfile,"# MAX z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[nzloopbins+nzbins-1],bin_redshift[nzloopbins+nzbins-1],IonTotal.vel[nzloopbins+nzbins-1],IonTotal.temp[nzloopbins+nzbins-1],IonTotal.rho[nzloopbins+nzbins-1],IonTotal.metals[0][nzloopbins+nzbins-1],IonTotal.mass[nzloopbins+nzbins-1]);
-
     for(i = nzloopbins; i < nzloopbins+nzbins; i++){
       if(IonTotal.mass[i] != 0.0){
 	IonTotal.vel[i] /= IonTotal.mass[i] ;
@@ -960,23 +988,16 @@ int ContSmoothSpec()
       } // 0 <= k < nions
       //#endif
 
-#ifndef PIPELINE
       if(i==nzloopbins)fprintf(binfile,"# MIN z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[i-nzloopbins],bin_redshift[i-nzloopbins],IonTotal.vel[i],IonTotal.temp[i],IonTotal.rho[i],IonTotal.metals[0][i],IonTotal.mass[i]);
       if(i==nzloopbins+nzbins-1)fprintf(binfile,"# MAX z = %9.7f coord = %9.7f vel = %7.5e temp = %7.5e rho = %7.5e metals = %7.5e mass = %7.5e\n",bin_redshift[i-nzloopbins],bin_redshift[i-nzloopbins],IonTotal.vel[i],IonTotal.temp[i],IonTotal.rho[i],IonTotal.metals[0][i],IonTotal.mass[i]);
-      /* 	  fprintf(binfile,"%5d  %9.7f %5.3e % 8.3f % 5.3e % 5.3e % 5.3e % 5.3e % 5.3e % 5.3e % 9.7e %5.3e",i,IonTotal.redshift[i],IonTotal.mass[i], IonTotal.vel[i],IonTotal.temp[i],IonTotal.rho[i],IonTotal.metals[0][i],IonTotal.metals[1][i],IonTotal.metals[2][i],IonTotal.metals[3][i],IonTotal.bincoord[i],IonTotal.binsize[i]); */
       fprintf(binfile,"%5d  %9.7f %5.3e % 8.3f % 5.3e % 5.3e %g %g %g %g % 9.7e %5.3e",i,IonTotal.redshift[i],IonTotal.mass[i], IonTotal.vel[i],IonTotal.temp[i],IonTotal.rho[i],IonTotal.metals[0][i],IonTotal.metals[1][i],IonTotal.metals[2][i],IonTotal.metals[3][i],IonTotal.bincoord[i],IonTotal.binsize[i]);
       if(IonTotal.metals[3][i] > 10){
 	printf("BAD METAL!! %d %g\n", i, IonTotal.metals[3][i]);
 	exit(-1);
       }
       fprintf(binfile," % 7.5e % 7.5e % 7.5e",IonExtra.x[i],IonExtra.y[i],IonExtra.z[i]);
-#ifdef DO6IONS 
-      fprintf(binfile," ",Ion[4].mass[i],Ion[4].vel[i],Ion[4].rho[i],Ion[4].temp[i],Ion[4].metals[0][i]);
-#endif
       fprintf(binfile," %5.3e %8.3f % 5.3e %5.3e %5.3e ",Ion[6].mass[i],Ion[6].vel[i],Ion[6].rho[i],Ion[6].temp[i],Ion[6].metals[0][i]);
       fprintf(binfile,"\n");
-#endif
-
     } // nzloopbins <= i < nzloopbins + nzbins
     fprintf(binfile,"# edge redshift = %9.7f hold_coord = %10.7f\n",IonTotal.redshift[nzloopbins+nzbins-1],hold_coord);
 
@@ -1006,6 +1027,38 @@ int ContSmoothSpec()
 	
     return 0;
 }
+
+#ifdef PHEW
+/* Find N_ion for tabulated PDF file from cloud-crushing simulations. */
+/* IONPDF_NCELL is defined in extern.h */
+/* IonPDFTab is loaded in initions.c */
+double find_column_density_for_ion(int ionid, int seed){
+  int i;
+  float random_number;
+  float logN, ncells;
+
+  // Here we use one random_numboer for HI, MgII, CIII (0, 2, 7)
+  // Another one for CIV, SiIV (3, 8)
+  // Yet Another one for OIV, NeVIII (5, 6)
+
+  /* if(ionid == 0 || ionid == 2 || ionid == 7) */
+  if(ionid == 3 || ionid == 8) seed += 1;
+  if(ionid == 5 || ionid == 6) seed += 2;
+
+  random_number = get_random_number(seed);  
+
+  ncells = (float)(IONPDF_NCELL);
+  i = random_number / IONPDF_NCELL;
+
+  // i = 0: prob = 0.000; i = 1: prob = 1.0 / IONPDF_NCELLS
+  i = DMIN(i, IONPDF_NCELL-1);
+  
+  // dp = 1.0 / IONPDF_NCELLS; (p - p[i]) / dp = logN - logN[i] / (logN[i+1] - logN[i-1])
+  logN = IonPDFTab[ionid][i] + (IonPDFTab[ionid][i+1] - IonPDFTab[ionid][i])
+    * ncells * (random_number - (float)(i) / ncells);
+  return pow(10.0, logN);
+}
+#endif
 
 
 /* this function generates a random number in a Gaussian distribution 

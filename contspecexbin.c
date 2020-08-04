@@ -29,7 +29,7 @@
 #define NINTERP 1000
 
 //struct gas_particle *spec_particles;
-char sim_id[20];
+char sim_id[40];
 
 struct spec_particle *spec_particles;
 struct spec_particle *gp;
@@ -86,6 +86,7 @@ double rhoZ, tempZ, rhoTZ[120][70][4],Z[4];
 double RndTable[RNDTABLE];
 gsl_rng *random_generator;
 double phew_mcinit;
+float IonPDFTab[9][IONPDF_NEDGE];
 
 double get_random_number(unsigned int id)
 {
@@ -153,7 +154,7 @@ int main(int argc,char **argv)
   direction = 2;  /* Going in the z-direction unless otherwise noted */
 #ifdef SHORTSPEC
   if( (LOSfile = fopen(argv[2],"r")) == NULL ) {
-    fprintf(stderr,"Could not open file %s\n",argv[2]);
+    fprintf(stderr,"Could not open LOSfile %s\n",argv[2]);
     return 0;
   }  
   sscanf(argv[3],"%lg",&redshift_center) ;
@@ -164,7 +165,10 @@ int main(int argc,char **argv)
   redshift_begin = redshift_center;
   redshift_end = redshift_center;
   redshift = redshift_center;
-  if(argc==7) sscanf(argv[6],"%d",&direction) ;
+  sscanf(argv[6],"%d",&direction) ;
+#ifdef PHEW
+  sscanf(argv[7],"%lg",&phew_mcinit) ;  
+#endif  
 #else
   sscanf(argv[2],"%lg",&redshift_begin) ;
   sscanf(argv[3],"%lg",&redshift_end) ;
@@ -195,11 +199,7 @@ int main(int argc,char **argv)
   set_random_numbers();
 #endif
 
-#ifdef PHEW  
   if(argc>8)
-#else
-  if(argc>7)
-#endif
     {
     fprintf(stderr,"Using input xspec yspec zspec\n");
     sscanf(argv[7],"%lg",&xspec);

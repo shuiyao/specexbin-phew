@@ -3,6 +3,7 @@ OPT     +=  -DHDF5FORMAT # See appendix. on the metallicity fields
 
 OPT     +=  -DDENSITY_H2_FACTOR
 OPT	+=  -DOUTPUT_LOCAL_FOLDER
+OPT    +=   -DNO_EXTRA_OUTPUT # no binzfile partfile etc.
 OPT	+=  -DQUINTIC_KERNEL
 OPT	+=  -DVELOCITY_UNIT_CORRECTION
 
@@ -14,7 +15,6 @@ OPT	+=  -DPHEW # Mutually exclusive with PART_BY_PART
 # OPT	+=  -DPHEW_MOREINFO
 # OPT	+=  -DPHEW_VERBOSE=1
 #OPT	+=  -DPHEW_HSMOOTH
-#OPT	+=  -DPHEW_RCLOUD_CORRECTION # Should be taken out then
 #OPT	+=  -DPHEW_NCLOUD=1000.0 # Should be taken out in the end
 
 #OPT	+=  -DNO_WIND_NGB_STAT
@@ -70,7 +70,7 @@ CLINK=gcc
 FLINK=f77
 GSL_INCL=-I/home/shuiyao/local/include
 GSL_LIBS=-L/home/shuiyao/local/lib
-CFLAGS= ${OPT} -g $(GSL_INCL) $(HDF5_INCL) -O2 #-fPIC -shared
+CFLAGS= ${OPT} -g $(GSL_INCL) $(HDF5_INCL) #-fPIC -shared
 FFLAGS= -O
 CLIB= -lm -lgsl -lgslcblas $(GSL_LIBS) $(HDF5_LIBS)
 FLIB= 

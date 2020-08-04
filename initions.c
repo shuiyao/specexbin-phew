@@ -262,6 +262,26 @@ int InitIons()
     // 1.497e-2 * sqrt(pi) = 2.653e-2
     fprintf(stderr,"%5d %10s %12.6g %12.6g %10.5g %10.5g %10.5g % 3.1f % 2d\n",i,Ion[i].name,Ion[i].lambda,Ion[i].Xsec,Ion[i].atomwt,Ion[i].fraction,Ion[i].bsys*sqrt(1.e4),Ion[i].alpha,Ion[i].Zcolumn);
   }
+
+#ifdef PHEW
+  /* Initialize the IonPDFTab structure */
+  char ionpdffilename[200];
+  FILE *ionpdffile;
+  float dummy;
+  sprintf(ionpdffilename,"%sx300v1700lc_i9_pdf.dat",prefix);  
+  if( (ionpdffile = fopen(ionpdffilename,"r")) == NULL )
+    ionpdffile = fopen(ionpdffilename,"r");
+  i = 0;
+  while( fgets(line,80,ionpdffile) != NULL ) {
+    if( strstr(line,"#") != NULL ) continue;
+    sscanf(line,"%g %g %g %g %g %g %g %g %g %g",
+	   &dummy, &IonPDFTab[0][i], &IonPDFTab[1][i], &IonPDFTab[2][i], &IonPDFTab[3][i],
+	   &IonPDFTab[4][i], &IonPDFTab[5][i], &IonPDFTab[6][i], &IonPDFTab[7][i], &IonPDFTab[8][i]);
+    i++;
+  }
+  fprintf(stdout, "%d Lines read from the ion PDF file.\n", i-1);
+  fclose(ionpdffile);  
+#endif  
   
   return 0;
 }

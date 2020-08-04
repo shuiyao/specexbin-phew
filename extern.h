@@ -11,10 +11,13 @@ extern double RndTable[RNDTABLE];
 extern gsl_rng *random_generator;	/*!< the random number generator used */
 
 extern double phew_mcinit; 	/* Initialized in cmd */
+
+#define IONPDF_NCELL 100
+#define IONPDF_NEDGE 101
 #endif // PHEW
 
 //extern struct gas_particle *spec_particles;
-char sim_id[20];
+char sim_id[40];
 extern struct spec_particle *gp;
 extern struct spec_particle *spec_particles;
 
@@ -49,6 +52,9 @@ extern int vi;
 extern int nsph;
 extern char namesuffix[200];
 extern double zres, vres;
+#ifdef PHEW
+extern float IonPDFTab[9][IONPDF_NEDGE];
+#endif
 
 //#ifdef HDF5FORMAT
 extern double *carbon, *oxygen, *silicon, *iron, *temp, *rho, *hsmooth, *mass;
