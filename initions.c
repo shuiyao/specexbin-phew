@@ -268,18 +268,32 @@ int InitIons()
   char ionpdffilename[200];
   FILE *ionpdffile;
   float dummy;
-  sprintf(ionpdffilename,"%sx300v1700lc_i9_pdf.dat",prefix);  
+  sprintf(ionpdffilename,"%sx300v1700lc_i9_pdf.dat",prefix); /* Conduction-dominated */
   if( (ionpdffile = fopen(ionpdffilename,"r")) == NULL )
     ionpdffile = fopen(ionpdffilename,"r");
   i = 0;
   while( fgets(line,80,ionpdffile) != NULL ) {
     if( strstr(line,"#") != NULL ) continue;
     sscanf(line,"%g %g %g %g %g %g %g %g %g %g",
-	   &dummy, &IonPDFTab[0][i], &IonPDFTab[1][i], &IonPDFTab[2][i], &IonPDFTab[3][i],
-	   &IonPDFTab[4][i], &IonPDFTab[5][i], &IonPDFTab[6][i], &IonPDFTab[7][i], &IonPDFTab[8][i]);
+	   &dummy, &IonPDFTab1[0][i], &IonPDFTab1[1][i], &IonPDFTab1[2][i], &IonPDFTab1[3][i],
+	   &IonPDFTab1[4][i], &IonPDFTab1[5][i], &IonPDFTab1[6][i], &IonPDFTab1[7][i], &IonPDFTab1[8][i]);
     i++;
   }
-  fprintf(stdout, "%d Lines read from the ion PDF file.\n", i-1);
+  fprintf(stdout, "%d Lines read from the ion PDF file 1.\n", i-1);
+  fclose(ionpdffile);
+
+  sprintf(ionpdffilename,"%sx300v1700_i9_pdf.dat",prefix); /* KHI-dominated */
+  if( (ionpdffile = fopen(ionpdffilename,"r")) == NULL )
+    ionpdffile = fopen(ionpdffilename,"r");
+  i = 0;
+  while( fgets(line,80,ionpdffile) != NULL ) {
+    if( strstr(line,"#") != NULL ) continue;
+    sscanf(line,"%g %g %g %g %g %g %g %g %g %g",
+	   &dummy, &IonPDFTab2[0][i], &IonPDFTab2[1][i], &IonPDFTab2[2][i], &IonPDFTab2[3][i],
+	   &IonPDFTab2[4][i], &IonPDFTab2[5][i], &IonPDFTab2[6][i], &IonPDFTab2[7][i], &IonPDFTab2[8][i]);
+    i++;
+  }
+  fprintf(stdout, "%d Lines read from the ion PDF file 2.\n", i-1);
   fclose(ionpdffile);  
 #endif  
   

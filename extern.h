@@ -53,7 +53,8 @@ extern int nsph;
 extern char namesuffix[200];
 extern double zres, vres;
 #ifdef PHEW
-extern float IonPDFTab[9][IONPDF_NEDGE];
+extern float IonPDFTab1[9][IONPDF_NEDGE];
+extern float IonPDFTab2[9][IONPDF_NEDGE];
 #endif
 
 //#ifdef HDF5FORMAT

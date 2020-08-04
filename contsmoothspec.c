@@ -43,7 +43,7 @@ float KernIntTable[NINTERP+1][2];
 float findrandgauss();
 
 #ifdef PHEW
-double find_column_density_for_ion(int ionid, int seed);
+double find_column_density_for_ion(int ionid, float temp, int seed);
 #endif
 
 int ContSmoothSpec()
@@ -76,12 +76,15 @@ int ContSmoothSpec()
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   FILE *phewsfile;
   char phewsname[80];
+  FILE *cloudsfile;
+  char cloudsname[80];
 #endif  
 #ifndef OUTPUT_LOCAL_FOLDER
   char longbinname[400], longpartname[400];
   char spec_dir[100];
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   char longphewsname[400];
+  char longcloudsname[400];  
 #endif  
   strcpy(spec_dir, FOLDER_OUTPUT);
 #endif
@@ -163,12 +166,14 @@ int ContSmoothSpec()
   sprintf(partname,"partzfile.%s.%s",sim_id,namesuffix);
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   sprintf(phewsname,"phewszfile.%s.%s",sim_id,namesuffix);
+  sprintf(cloudsname,"cloudszfile.%s.%s",sim_id,namesuffix);  
 #endif  
 #ifdef OUTPUT_LOCAL_FOLDER
   binfile = fopen(binname,"w");
   partfile = fopen(partname,"w");
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   phewsfile = fopen(phewsname,"w");
+  cloudsfile = fopen(cloudsname,"w");  
 #endif  
 #else
   strcat(strcpy(longbinname, spec_dir), binname);
@@ -178,6 +183,8 @@ int ContSmoothSpec()
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   strcat(strcpy(longphewsname, spec_dir), phewsname);
   phewsfile = fopen(longphewsname,"w");
+  strcat(strcpy(longcloudsname, spec_dir), cloudsname);  
+  cloudsfile = fopen(longcloudsname,"w");  
 #endif  
 #endif
   fprintf(partfile,"#count = %d\n",count);
@@ -198,12 +205,18 @@ int ContSmoothSpec()
   }else{
     sprintf(phewsname,"phewszfile.%s.%s.%d_%d",sim_id,id,jname,kname);
   }
+  if(theta>0){
+    sprintf(cloudsname,"cloudszfile.%s.%d.%d_%d",sim_id,iname,jname,kname);
+  }else{
+    sprintf(cloudsname,"cloudszfile.%s.%s.%d_%d",sim_id,id,jname,kname);
+  }
 #endif  
 #ifdef OUTPUT_LOCAL_FOLDER
   binfile = fopen(binname,"a");
   partfile = fopen(partname,"a");
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
-  phewsfile = fopen(phewsname,"a");  
+  phewsfile = fopen(phewsname,"a");
+  cloudsfile = fopen(cloudsname,"a");    
 #endif  
 #else
   strcat(strcpy(longbinname, spec_dir), binname);
@@ -213,6 +226,8 @@ int ContSmoothSpec()
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
   strcat(strcpy(longphewsname, spec_dir), phewsname);  
   phewsfile = fopen(longphewsname,"a");
+  strcat(strcpy(longcloudsname, spec_dir), cloudsname);  
+  cloudsfile = fopen(longcloudsname,"a");
 #endif  
 #endif
 
@@ -757,9 +772,15 @@ int ContSmoothSpec()
 		if(cp -> wind_flag > 0){ // A PhEW particle
 		  ycorr = DMAX(sqrt(1.0 - vz * vz / (cp->vel[0]*cp->vel[0] + cp->vel[1]*cp->vel[1] + cp->vel[2]*cp->vel[2])), (2.37/6.61)*(2.37/6.61));
 		  // cos(alpha) = |vz / v|, alpha is the angle between LoS and v
-		  
-		  equiv_area = ycorr * PI * (6.61 * cp->rcloud) * (6.61 * cp->rcloud);
+
+		  if(cp->temp > 3.16e5) // log(T) = 5.5. 
+		    equiv_area = ycorr * PI * (6.61 * cp->rcloud) * (6.61 * cp->rcloud);
+		  else
+		    equiv_area = ycorr * PI * (10.0 * cp->rcloud) * (10.0 * cp->rcloud);		  
+		  // 6.61 = sqrt(1.75) * (100. / 20.)
 		  // In the reference simulation, the covering area of the cloud in perpendicular view is PI * (6.61 Rc) ** 2. In that simulation, Rc ~ 20 pc. The covering area in parallel view is PI * (2.37 Rc) ** 2. The covering area is quite close for different ions.
+		  // In the KHI dominated scenario, the cross section is even larger.
+		  // 10.0 = sqrt(4.00) * (100. / 20.)
 		  col_corr = (cp->mcloud * phew_mcinit / 6.7e37) /
 		    pow((cp->rcloud / (0.02 * UNIT_L / unit_Tipsy_Length)), 2.0) / ycorr;
 		  // 6.7e37 = 0.5 * 6.7e4 * Msolar
@@ -771,7 +792,7 @@ int ContSmoothSpec()
 		  // Write prob0, prob1, prob2 to the partzfile ...
 		  /* random_number = get_random_number(cp->idx + 12); */
 		  /* idx+12 is not a good seed because it will be the same for a PhEW particle. Physically, the chance of hitting a cloud in each zbin should be calculated independently */
-		  random_number = get_random_number(cp->idx + (int)(nc_bin * 10000));
+		  random_number = get_random_number(cp->idx + bin + (int)(nc_bin * 10000));
 		  
 		  if(random_number < prob2) nc_hits = 2.0;
 		  else if(random_number < prob1) nc_hits = 1.0;
@@ -782,6 +803,7 @@ int ContSmoothSpec()
 			  ycorr, col_corr,
 			  prob1, prob2, nc_hits
 			  );
+		  if(nc_hits == 0.0) continue; // Ignore this bin.
 		}
 #endif		
 		// **************** Construction Begin ... ****************
@@ -818,11 +840,16 @@ int ContSmoothSpec()
 		    // note ionfrac[k] is calculated independently for each cp
 
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)
-		  if(cp -> wind_flag > 0){
+		  if(cp -> wind_flag > 0 && ionid >= 0){
 		    // Each Particle has a unique random_number
-		    colcloud = find_column_density_for_ion(ionid, (int)(random_number*14397));
+		    colcloud = find_column_density_for_ion(ionid, cp->temp, (int)(random_number*14397));
+		    if(ionid == 0 || ionid == 3 || ionid == 5 || ionid == 7){
+		      fprintf(cloudsfile, "%2d %5.2f %5.3e %5.3e %5.3f %5.3f\n",
+			      ionid, log10(colcloud), cp->metals[Zcol] / I.fraction, col_corr,
+			      cp->mcloud, cp->rcloud * unit_Tipsy_Length / UNIT_L);
+		    }
 		    colcloud *= col_corr * nc_hits * MHYDR * I.atomwt / unit_Column_Density;
-		    if(Zcol > 0) colcloud *= (cp->metals[Zcol] / I.fraction);
+		    if(ionid > 0) colcloud *= (cp->metals[Zcol] / I.fraction); /* Ignore HI */
 		  }
 		    /* colcloud = nc_hits * cp->rho * 4. / 3. * cp->rcloud * ion_weight; */
 		  else
@@ -1007,6 +1034,7 @@ int ContSmoothSpec()
     fclose(partfile);
 #if defined(PHEW) && !defined(PHEW_IGNORE_PHEWS)    
     fclose(phewsfile);
+    fclose(cloudsfile);    
 #endif      
 
 #ifndef SHORTSPEC
@@ -1032,10 +1060,10 @@ int ContSmoothSpec()
 /* Find N_ion for tabulated PDF file from cloud-crushing simulations. */
 /* IONPDF_NCELL is defined in extern.h */
 /* IonPDFTab is loaded in initions.c */
-double find_column_density_for_ion(int ionid, int seed){
+double find_column_density_for_ion(int ionid, float temp, int seed){
   int i;
   float random_number;
-  float logN, ncells;
+  float logN, dcell;
 
   // Here we use one random_numboer for HI, MgII, CIII (0, 2, 7)
   // Another one for CIV, SiIV (3, 8)
@@ -1047,15 +1075,19 @@ double find_column_density_for_ion(int ionid, int seed){
 
   random_number = get_random_number(seed);  
 
-  ncells = (float)(IONPDF_NCELL);
-  i = random_number / IONPDF_NCELL;
+  dcell = 1./(float)(IONPDF_NCELL);
+  i = (int)(random_number / dcell);
 
   // i = 0: prob = 0.000; i = 1: prob = 1.0 / IONPDF_NCELLS
   i = DMIN(i, IONPDF_NCELL-1);
   
   // dp = 1.0 / IONPDF_NCELLS; (p - p[i]) / dp = logN - logN[i] / (logN[i+1] - logN[i-1])
-  logN = IonPDFTab[ionid][i] + (IonPDFTab[ionid][i+1] - IonPDFTab[ionid][i])
-    * ncells * (random_number - (float)(i) / ncells);
+  if(temp > 3.16e5)
+    logN = IonPDFTab1[ionid][i] + (IonPDFTab1[ionid][i+1] - IonPDFTab1[ionid][i])
+      * (random_number - (float)(i) / dcell) / dcell;
+  else
+    logN = IonPDFTab2[ionid][i] + (IonPDFTab2[ionid][i+1] - IonPDFTab2[ionid][i])
+      * (random_number - (float)(i) * dcell) / dcell;
   return pow(10.0, logN);
 }
 #endif

@@ -86,7 +86,8 @@ double rhoZ, tempZ, rhoTZ[120][70][4],Z[4];
 double RndTable[RNDTABLE];
 gsl_rng *random_generator;
 double phew_mcinit;
-float IonPDFTab[9][IONPDF_NEDGE];
+float IonPDFTab1[9][IONPDF_NEDGE];
+float IonPDFTab2[9][IONPDF_NEDGE];
 
 double get_random_number(unsigned int id)
 {
