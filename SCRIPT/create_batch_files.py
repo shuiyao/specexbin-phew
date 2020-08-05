@@ -1,9 +1,19 @@
+import sys
+
 finname = "sample.slm"
 fshname = "sample.sh"
 foutname = "test.slm"
 
-model = "l25n288-phew-m5"
-mcinit = "2.0e38"
+if(len(sys.argv) != 3):
+    print "Usage: create_batch_files.py $modelname $mcinit"
+    print "Example: create_batch_files.py l25n288 2.0e38"    
+    raise ValueError, "Not enough parameters. Force Quit!"
+else:
+    model = sys.argv[1]
+    mcinit = sys.argv[2]    
+
+# model = "l25n288-phew-m5-spl"
+# mcinit = "2.0e38"
 
 angles1 = [10., 20., 30., 40., 50., 60., 70.]
 angles2 = [20., 30., 40., 50., 60., 70., 80.]

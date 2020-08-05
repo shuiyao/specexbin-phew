@@ -1,8 +1,8 @@
 #!/bin/bash
 
-model="l25n288-phew-m4"
+model="l25n288-phew-m5-spl"
 
-if [ -e ../$model.tab ]; then
+if [ -e ./tabs/$model.tab ]; then
     sbatch $model"_10-20.slm"
     sbatch $model"_20-30.slm"
     sbatch $model"_30-40.slm"

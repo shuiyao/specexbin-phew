@@ -2,8 +2,8 @@
 OPT     +=  -DHDF5FORMAT # See appendix. on the metallicity fields
 
 OPT     +=  -DDENSITY_H2_FACTOR
-OPT	+=  -DOUTPUT_LOCAL_FOLDER
-OPT    +=   -DNO_EXTRA_OUTPUT # no binzfile partfile etc.
+#OPT	+=  -DOUTPUT_LOCAL_FOLDER
+OPT    +=   -DNO_EXTRA_OUTPUT # no binzfile partfile etc. (Not there yet)
 OPT	+=  -DQUINTIC_KERNEL
 OPT	+=  -DVELOCITY_UNIT_CORRECTION
 

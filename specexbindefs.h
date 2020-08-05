@@ -5,7 +5,7 @@ typedef float Real;
 #ifdef SHORTSPEC
 #define FOLDER_OUTPUT "/proj/shuiyao/los/shortlos/temp/"
 #else
-#define FOLDER_OUTPUT "/proj/shuiyao/los/"
+#define FOLDER_OUTPUT "/proj/shuiyao/los/temp/"
 #endif
 
 #define NDIM		3

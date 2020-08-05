@@ -7,10 +7,10 @@ zbeg=0.0
 zend=0.5
 lbox=50.0
 ftau=1.0
+tabfile="tabs/"$modelname # No need for ".tab"
 
 while read line 
 do
-    echo "./contspecexbin "$modelname $zbeg $zend $lbox $ftau $line $mcinit
-    # gdb --args ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line
-    ./contspecexbin $modelname $zbeg $zend $lbox $ftau $line $mcinit
+    echo "../contspecexbin "$modelname $zbeg $zend $lbox $ftau $line $mcinit
+    ../contspecexbin $tabfile $zbeg $zend $lbox $ftau $line $mcinit
 done < "angles/angles_10_20.dat"
