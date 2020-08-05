@@ -2,7 +2,7 @@ C***************** input parameters for autovp ********************************
 0.5	fsigma -- number of noise vectors subtracted from smooth to get minflux
 2.d15	NHImaxns -- Column density maximum for non-saturated line
 1.d17	NHImaxsat -- Column density maximum for saturated line
-200.	bparmax -- b param maximum
+100.	bparmax -- b param maximum
 8.	bminsat -- b param minimum for saturated line
 0.99	freduce -- factor by which b and N are reduced during fitting
 1	fitflag -- 0=Gaussian, 1=Voigt profiles, 2=Gaussian, output equiv wdths

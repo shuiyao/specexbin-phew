@@ -4,20 +4,27 @@ Generate mock line of sight (LoS) quasar absorption spectra from cosmological si
 
 ## Files and Parameters
 ================================
+
 Here is a list of user defined files and parameters that you might need to reconfigure on a different machine.
 
 _./specions_i9_gizmo.dat_: The ions data, including atomic weight, solar mass fraction, corresponding column in the P.Metallicity field in the simulation.
+
 _./Makefile_:
   - SHORTSPEC: Turn on to enable shortLoS, otherwise generate random LoS
+
 _./specexbindefs.h_:
   - FOLDER_IONS: The folder that contains data tables that are necessary
   - FOLDER_OUTPUT: The default output folder. Since thousands of files will be dumped into this folder. We better choose a "dump site" that is exclusively used for temporarily storing the data.
+
 _./SCRIPT/angles_: The angle files, used for generating random LoS
+
 _./SCRIPT/tabs_: The files that point to the locations of the snapshots from the simulation.
+
 _./SCRIPT/LoS_: The targeted LoS (shortLoS) that was generated.
 
 ## Generate Random LoS with SPECEXBIN
 ================================
+
 Suppose now we want to generate random LoS for a simulation named $modelname.
 
 1. Preparation
@@ -28,6 +35,7 @@ Suppose now we want to generate random LoS for a simulation named $modelname.
   python create_batch_files.py l25n288 2.0e38
   ```
   - Check the .slm and .sh file, then
+
 2. Run SPECEXBIN with
 ```
 bash batch.sh
@@ -36,16 +44,13 @@ bash batch.sh
   - The output files are temporarily stored at FOLDER_OUTPUT
   - 
 
-
 4. (PhEW only) Add Clouds to the Spectra
-
 In the autovp folder, use
 ```
 python add_clouds_to_spec.py $modelname
 ```
 
 6. Do AutoVP
-
 ```
 bash dospectra.sh
 ```
@@ -54,6 +59,7 @@ bash dospectra.sh
   - spec_compile.py and spec_compile_HI.py
 
 ## Generate ShortLOS with SPECEXBIN.
+
 ================================
 1. Generate LoS info
   - mklosfile.py

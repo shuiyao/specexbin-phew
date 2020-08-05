@@ -1,5 +1,0 @@
-Downloaded from virgo on Feb 21, 2013 from Ben's directory.
-
-I changed the pathways to ions.dat and autovp.par to ./ions.dat and ./autovp.par, so should work on any machine (I tried it on tap and it works fine). Only thing weird is that the Makefile and Makefile.dist aren't the same, which according to the original README they should be. So not sure where the Makefile came from, but it appears to work okay, so not looking a gift horse in the mouth). I was able to compile this using the Makefile as given, on octopus.
-
--Amanda Ford
