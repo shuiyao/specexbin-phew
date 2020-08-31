@@ -14,7 +14,7 @@ _./Makefile_:
   - SHORTSPEC: Turn on to enable shortLoS, otherwise generate random LoS
 
 _./specexbindefs.h_:
-  - FOLDER_IONS: The folder that contains data tables that are necessary
+  - FOLDER_IONS: The folder that contains data tables that are necessary. Make sure these files are already on the computer.
   - FOLDER_OUTPUT: The default output folder. Since thousands of files will be dumped into this folder. We better choose a "dump site" that is exclusively used for temporarily storing the data.
 
 _./contspecexbin.c_:
