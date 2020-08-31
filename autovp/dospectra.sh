@@ -17,17 +17,18 @@ else
     echo 
 fi
 
-python add_clouds_to_spec_shortlos.py $model
+# python add_clouds_to_spec_shortlos.py $model
 
-cp autovp.par.OVI ./src/autovp.par
-# cp autovp.par.HI ./src/autovp.par
+# cp autovp.par.OVI ./src/autovp.par
+cp autovp.par.HI ./src/autovp.par
 
 sn=30
 dvpix=6
 dvres=0     
 #ions='HI HeII CIII CIV OIV OVI NeVIII MgII SiIV'
-ions='CIV OVI NeVIII SiIV'
-taufact=1.0
+# ions='CIV OVI NeVIII SiIV'
+ions='HI'
+taufact=0.31
 subfolder="z0.5"
 taudir=$fbase/$subfolder/
 zquasar=0.51

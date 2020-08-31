@@ -740,15 +740,3 @@ The ZRES has a resolution of 333,333 and is the dz of a bin size in
 the binzfiles, while the VRES is the resolution of the output spectau
 files (66,667), so a spectrum from z=2->0 has 133,333 rows.  This has
 not changed since the Uffe Hellsten version.  
-
-VIII. CODE DETAILS
-
-contspecexbin_v8.c
-file_io.c
-getspecparticles.c
-initions.c
-contsmoothspec.c
-ionfrac.c
-tau.c
-outtau.c  
-

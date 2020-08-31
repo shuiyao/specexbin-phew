@@ -782,7 +782,8 @@ int ContSmoothSpec()
 		  // In the KHI dominated scenario, the cross section is even larger.
 		  // 10.0 = sqrt(4.00) * (100. / 20.)
 		  col_corr = (cp->mcloud * phew_mcinit / 6.7e37) /
-		    pow((cp->rcloud / (0.02 * UNIT_L / unit_Tipsy_Length)), 2.0) / ycorr;
+		    pow((cp->rcloud / (0.02 * UNIT_L / unit_Tipsy_Length)), 4.0) / ycorr;
+		  // The additional Rc dependence comes from correction in the ionization paramter.
 		  // 6.7e37 = 0.5 * 6.7e4 * Msolar
 		  
 		  nc_bin = kernel * cp->ncloud * equiv_area; // kernel has been normalized by PI * h^2
