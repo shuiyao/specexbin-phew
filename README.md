@@ -5,7 +5,6 @@ Generate mock line of sight (LoS) quasar absorption spectra from cosmological si
 See README for the detailed manual from the original author, Benjamin D. Oppenheimer.
 
 ## Files and Parameters
-================================
 
 Here is a list of user defined files and parameters that you might need to reconfigure on a different machine.
 
@@ -28,7 +27,7 @@ _./SCRIPT/LoS_: The targeted LoS (with SHORTSPEC) that was generated.
 
 Suppose now we want to generate random LoS for a simulation named $modelname.
 
-# Example:
+### Example:
 
 Here is an example script that can be found at SCRIPT/example.sh. This script will generate 2 random sightlines at two different angles from z = 0.0 to z = 0.5. It reads the snapshots specified in SCRIPT/tab/l50n288-phew-m4.tab and will write two files with prefix "specztauw." in the FOLDER_OUTPUT (if OUTPUT_LOCAL_FOLDER is OFF) or in the current folder. The format of the output files is described in README.
 
