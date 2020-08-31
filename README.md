@@ -1,17 +1,20 @@
-# SPECEXBIN:
+# SPECEXBIN + AutoVP:
 
-Generate mock line of sight (LoS) quasar absorption spectra from cosmological simulations. It is made compatible with the GIZMO code + PhEW model. It contains AUTOVP, a software that analyzes the spectra data and perform profile fitting.
+Generate mock line of sight (LoS) quasar absorption spectra from cosmological simulations. It is made compatible with the GIZMO code + PhEW model. It contains AutoVP, a software that analyzes the spectra data and perform profile fitting.
 
 See README for the detailed manual from the original author, Benjamin D. Oppenheimer.
 
 ## Files and Parameters
 
-Here is a list of user defined files and parameters that you might need to reconfigure on a different machine.
+Here is a list of user defined files and parameters that might need reconfiguration for a different environment.
 
 _./specions_i9_gizmo.dat_: The ions data, including atomic weight, solar mass fraction, corresponding column in the P.Metallicity field in the simulation. By default, the GIZMO HDF5 output has 11 metallicity fields, i.e., Z, He, C, N, O, Ne, Mg, Si, S, Ca, Fe. Adjust the 6th column of the table accordingly.
 
 _./Makefile_:
+  - PHEW: The switch for PhEW. **(still under work, do dot use)**
   - SHORTSPEC: Turn on to enable shortLoS, otherwise generate random LoS
+  - DOHM12: Use the Haardt & Madau 2012 UV background. Turning it off will use the Haardt & Madau 2001 UV background. Currently these are the only two options.
+  - HDF5FORMAT: The specexbin was originally developed for Tipsy format data. Turning this on forces using the HDF5 format snapshots (make sure to get the correct path for HDF5_INCL and HDF5_LIBS).
 
 _./specexbindefs.h_:
   - FOLDER_IONS: The folder that contains data tables that are necessary. Make sure these files are already on the computer.
