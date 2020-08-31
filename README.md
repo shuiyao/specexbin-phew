@@ -17,6 +17,9 @@ _./specexbindefs.h_:
   - FOLDER_IONS: The folder that contains data tables that are necessary
   - FOLDER_OUTPUT: The default output folder. Since thousands of files will be dumped into this folder. We better choose a "dump site" that is exclusively used for temporarily storing the data.
 
+_./contspecexbin.c_:
+  - The cosmological parameters are hardcoded in and should be adjusted accordingly. The default values are Omega_m = 0.30, Omega_Lambda = 0.7, Omega_baryon = 0.045, H_0 = 70.
+
 _./SCRIPT/angles_: The angle files, used for batch generating random LoS
 
 _./SCRIPT/tabs_: The files that point to the locations of the snapshots from the simulation.
